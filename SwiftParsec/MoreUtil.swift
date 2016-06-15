@@ -8,14 +8,12 @@ public func many<a, c: Collection> (_ p: Parser<a, c>.T) -> Parser<[a], c>.T {
   } <|> create([])
 }
 
-public func eof<c: Collection> () -> Parser<(), c>.T {
-  return { state in
-    if let head = state.input.first {
-      return .Consumed(Lazy({ .Error(Message(state.pos, .Element(head), [.End]))}))
-    } else {
-      return .Empty(.Ok((), state, Message(state.pos, .End, [])))
-    }
-  }
+public func eof<c: Collection where c.SubSequence == c> () -> Parser<(), c>.T {
+  return notFollowedBy(anyToken()) <?> "end of input"
+}
+
+public func anyToken<a, c: Collection where c.SubSequence == c, a == c.Iterator.Element> () -> Parser<a, c>.T {
+  return satisfy { _ in true }
 }
 
 infix operator >>| { associativity left precedence 110 }
@@ -63,12 +61,12 @@ public func notFollowedBy<a, c: Collection> (_ p: Parser<a, c>.T) -> Parser<(), 
 
 public func unexpected<a, c: Collection> (_ msg: String) -> Parser<a, c>.T {
   return { state in
-    .Empty(.Error(Message(state.pos, .Label(msg), [])))
+    .Empty(.Error(ParseError(state.pos, [.UnExpect(msg)])))
   }
 }
 
 public func fail<a, c: Collection> (_ msg: String) -> Parser<a, c>.T {
   return { state in
-    .Consumed(Lazy({ .Error(Message(state.pos, .Label(msg), [])) }))
+    .Empty(.Error(ParseError(state.pos, [.Message(msg)])))
   }
 }

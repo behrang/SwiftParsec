@@ -4,21 +4,22 @@ public enum Parser<a, c: Collection> {
   public typealias T = (State<c>) -> Consumed<a, c>
 }
 
-public func create<a, c: Collection> (_ x:a) -> Parser<a, c>.T {
-  return { state in .Empty(.Ok(x, state, Message(state.pos, .Nothing, []))) }
+public func create<a, c: Collection> (_ x: a) -> Parser<a, c>.T {
+  return { state in .Empty(.Ok(x, state, ParseError(state.pos))) }
 }
 
 public func satisfy<a, c: Collection where c.SubSequence == c, a == c.Iterator.Element> (_ test: (a) -> Bool) -> Parser<a, c>.T {
   return { state in
     if let head = state.input.first where test(head) {
       let tail = state.input.dropFirst(1)
-      let newPos = state.input.index(after: state.pos)
+      var newPos = state.pos
+      newPos.update(String(head))
       let newState = State(tail, newPos)
-      return .Consumed(Lazy({ .Ok(head, newState, Message(state.pos, .Nothing, [])) }))
+      return .Consumed(Lazy({ .Ok(head, newState, ParseError(state.pos)) }))
     } else if let head = state.input.first {
-      return .Empty(.Error(Message(state.pos, .Element(head), [])))
+      return .Empty(.Error(ParseError(state.pos, [.SysUnExpect(String(head))])))
     } else {
-      return .Empty(.Error(Message(state.pos, .End, [])))
+      return .Empty(.Error(ParseError(state.pos, [.SysUnExpect("")])))
     }
   }
 }
@@ -103,8 +104,12 @@ infix operator <?> { associativity left precedence 110 }
 public func <?> <a, c: Collection> (p: Parser<a, c>.T, exp: String) -> Parser<a, c>.T {
   return { state in
     switch p(state) {
-    case let .Empty(.Error(msg)): return .Empty(.Error(expect(msg, exp)))
-    case let .Empty(.Ok(x, st, msg)): return .Empty(.Ok(x, st, expect(msg, exp)))
+    case .Empty(.Error(var err)):
+      err.setMessage(.Message(exp))
+      return .Empty(.Error(err))
+    case .Empty(.Ok(let x, let st, var err)):
+      err.setMessage(.Message(exp))
+      return .Empty(.Ok(x, st, err))
     case let other: return other
     }
   }
