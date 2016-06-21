@@ -1,19 +1,19 @@
 import SwiftParsec
 
-func csvFile2 () -> (State<String.CharacterView>) -> Consumed<[[String]], String.CharacterView> {
+func csvFile2 () -> Parser<[[String]], String.CharacterView>.T {
   // return many(endBy(sepBy(cellContent(), character(",")), character("\n")))
   return endBy(line2(), eol2())
 }
 
-func line2 () -> (State<String.CharacterView>) -> Consumed<[String], String.CharacterView> {
+func line2 () -> Parser<[String], String.CharacterView>.T {
   return sepBy(cell2(), character(","))
 }
 
-func cell2 () -> (State<String.CharacterView>) -> Consumed<String, String.CharacterView> {
+func cell2 () -> Parser<String, String.CharacterView>.T {
   return many(noneOf([",", "\n"])) >>- { xs in create(String(xs)) }
 }
 
-func eol2 () -> (State<String.CharacterView>) -> Consumed<Character, String.CharacterView> {
+func eol2 () -> Parser<Character, String.CharacterView>.T {
   return character("\n")
 }
 

@@ -1,25 +1,25 @@
 import SwiftParsec
 
-func csvFile4 () -> (State<String.CharacterView>) -> Consumed<[[String]], String.CharacterView> {
+func csvFile4 () -> Parser<[[String]], String.CharacterView>.T {
   return endBy(line4(), eol4)
 }
 
-func line4 () -> (State<String.CharacterView>) -> Consumed<[String], String.CharacterView> {
+func line4 () -> Parser<[String], String.CharacterView>.T {
   return sepBy(cell4(), character(","))
 }
 
-func cell4 () -> (State<String.CharacterView>) -> Consumed<String, String.CharacterView> {
+func cell4 () -> Parser<String, String.CharacterView>.T {
   return character("\"") >>- { _ in
     many(quotedCharacter4()) >>- { content in
-      character("\"") <?> "quote at end of cell" >>- { _ in
+      ( character("\"") <?> "quote at end of cell" ) >>- { _ in
         create(String(content))
       }
     }
   } <|> (many(noneOf([",", "\n", "\r"])) >>- { xs in create(String(xs))})
 }
 
-func quotedCharacter4 () -> (State<String.CharacterView>) -> Consumed<Character, String.CharacterView> {
-  return noneOf(["\""]) <|> attempt(string("\"\"".characters)  <?> "\\\"\\\"" >>- { _ in create(Character("\""))})
+func quotedCharacter4 () -> Parser<Character, String.CharacterView>.T {
+  return noneOf(["\""]) <|> attempt((string("\"\"".characters)  <?> "\\\"\\\"") >>- { _ in create(Character("\""))})
 }
 
 let eol4 = {

@@ -3,7 +3,7 @@
     Source positions: a file name, a line and a column
     upper left is (1,1)
 */
-struct SourcePos: CustomStringConvertible, Comparable {
+public struct SourcePos: CustomStringConvertible, Comparable {
   var name: String
   var line: Int
   var column: Int
@@ -67,7 +67,7 @@ struct SourcePos: CustomStringConvertible, Comparable {
     }
   }
 
-  var description: String {
+  public var description: String {
     var result = ""
     if !name.isEmpty {
       result = "\"\(name)\" "
@@ -77,10 +77,10 @@ struct SourcePos: CustomStringConvertible, Comparable {
   }
 }
 
-func == (lhs: SourcePos, rhs: SourcePos) -> Bool {
+public func == (lhs: SourcePos, rhs: SourcePos) -> Bool {
   return lhs.line == rhs.line && lhs.column == rhs.column
 }
 
-func < (lhs: SourcePos, rhs: SourcePos) -> Bool {
+public func < (lhs: SourcePos, rhs: SourcePos) -> Bool {
   return lhs.line < rhs.line || lhs.line == rhs.line && lhs.column < rhs.column
 }

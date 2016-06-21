@@ -1,12 +1,12 @@
 import SwiftParsec
 
-func csvFile () -> (State<String.CharacterView>) -> Consumed<[[String]], String.CharacterView> {
+func csvFile () -> Parser<[[String]], String.CharacterView>.T {
   return many(line()) >>- { result in
     eof() >>| create(result)
   }
 }
 
-func line () -> (State<String.CharacterView>) -> Consumed<[String], String.CharacterView> {
+func line () -> Parser<[String], String.CharacterView>.T {
   return cells() >>- { result in
     eol() >>| create(result)
   }
@@ -18,7 +18,7 @@ func line () -> (State<String.CharacterView>) -> Consumed<[String], String.Chara
 //   }
 // }()
 
-func cells () -> (State<String.CharacterView>) -> Consumed<[String], String.CharacterView> {
+func cells () -> Parser<[String], String.CharacterView>.T {
   return cellContent() >>- { first in
     remainingCells() >>- { next in
       var r = [first]
@@ -28,15 +28,15 @@ func cells () -> (State<String.CharacterView>) -> Consumed<[String], String.Char
   }
 }
 
-func remainingCells () -> (State<String.CharacterView>) -> Consumed<[String], String.CharacterView> {
+func remainingCells () -> Parser<[String], String.CharacterView>.T {
   return (character(",") >>| cells()) <|> create([])
 }
 
-func cellContent () -> (State<String.CharacterView>) -> Consumed<String, String.CharacterView> {
+func cellContent () -> Parser<String, String.CharacterView>.T {
   return many(noneOf([",","\n"])) >>- { cs in create(String(cs)) }
 }
 
-func eol () -> (State<String.CharacterView>) -> Consumed<Character, String.CharacterView> {
+func eol () -> Parser<Character, String.CharacterView>.T {
   return character("\n") <?> "\\n"
 }
 

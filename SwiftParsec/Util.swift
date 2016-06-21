@@ -20,7 +20,7 @@ public func newline<c: Collection where c.SubSequence == c, c.Iterator.Element =
 
 public func string<c: Collection where c.SubSequence == c, c.Iterator.Element == Character> (_ x: c) -> Parser<String, c>.T {
   if let head = x.first {
-    let tail = x.dropFirst(1)
+    let tail = x.dropFirst()
     return character(head) >>- { ch in
       string(tail) >>- { chs in
         var r = chs

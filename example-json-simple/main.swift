@@ -6,20 +6,20 @@ import SwiftParsec
 // }
 // x("")
 
-// func test1<c: Collection where c.SubSequence == c, c.Iterator.Element == Character> () -> (State<c>) -> Consumed<c.Iterator.Element, c> {
+// func test1<c: Collection where c.SubSequence == c, c.Iterator.Element == Character> () -> Parser<c.Iterator.Element, c>.T {
 //   return (digit() <|> create("0")) >>- { _ in letter() }
 // }
 // let input1: State<String.CharacterView> = "*"
 // print(test1()( input1 ))
 
-// func test2 () -> (State<String.CharacterView>) -> Consumed<[[Character]], String.CharacterView> {
+// func test2 () -> Parser<[[Character]], String.CharacterView>.T {
 //   return
 //     many1(many1(letter()) >>- { name in return newline() >>- { _ in create(name)} }) <?> "one or more names on each line"
 // }
 // let input2: State<String.CharacterView> = "1Behrang\nNoruziniya\n34\n"
 // print(test2()(input2))
 
-// func test3 () -> (State<String.CharacterView>) -> Consumed<[Character], String.CharacterView> {
+// func test3 () -> Parser<[Character], String.CharacterView>.T {
 //   return attempt(string("let".characters) <?> "let" >>- { _ in character(" ") >>- { _ in letter() >>- { _ in create([Character("-")])} }}) <|> identifier()
 // }
 // let input3: State<String.CharacterView> = "*letter"
