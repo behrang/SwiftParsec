@@ -33,16 +33,6 @@ public func string<c: Collection where c.SubSequence == c, c.Iterator.Element ==
   }
 }
 
-public func many1<a, c: Collection> (_ p: Parser<a, c>.T) -> Parser<[a], c>.T {
-  return p >>- { x in
-    (many1(p) <|> create([])) >>- { xs in
-      var r = [x]
-      r.append(contentsOf: xs)
-      return create(r)
-    }
-  }
-}
-
 public func identifier<c: Collection where c.SubSequence == c, c.Iterator.Element == Character> () -> Parser<[c.Iterator.Element], c>.T {
   return many1(letter() <|> digit() <|> character("_")) <?> "identifier"
 }
