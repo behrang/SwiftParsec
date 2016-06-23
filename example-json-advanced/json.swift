@@ -31,18 +31,18 @@ func json () -> Parser<Json,scv>.T {
 }
 
 func null () -> Parser<Json, scv>.T {
-  return attempt(string("null".characters) >>| create(.null)) <?> "null"
+  return attempt(string("null") >>| create(.null)) <?> "null"
 }
 
 func bool () -> Parser<Json, scv>.T {
-  return attempt(string("true".characters) >>| create(.bool(true)))
-    <|> attempt(string("false".characters) >>| create(.bool(false)))
+  return attempt(string("true") >>| create(.bool(true)))
+    <|> attempt(string("false") >>| create(.bool(false)))
     <?> "boolean"
 }
 
 func int () -> Parser<Json, scv>.T {
   return attempt(many1(digit()) >>- { a in
-    notFollowedBy(character(".")) >>- { _ in
+    notFollowedBy(char(".")) >>- { _ in
       let intString = String(a)
       if let i = Int(intString + "") {
         return create(.int(i))
@@ -55,7 +55,7 @@ func int () -> Parser<Json, scv>.T {
 
 func double () -> Parser<Json, scv>.T {
   return many1(digit()) >>- { a in
-    character(".") >>| many(digit()) >>- { b in
+    char(".") >>| many(digit()) >>- { b in
       let doubleString = String(a) + "." + String(b)
       if let d = Double(doubleString) {
         return create(.double(d))
@@ -68,35 +68,35 @@ func double () -> Parser<Json, scv>.T {
 
 func quotedString () -> Parser<Json, scv>.T {
   return attempt(
-    character("\"") >>|
+    char("\"") >>|
     many(noneOf(["\""])) >>- { ss in
-      character("\"") >>| create(.string(String(ss)))
+      char("\"") >>| create(.string(String(ss)))
     }
   )
 }
 
 func array () -> Parser<Json, scv>.T {
   return attempt(
-    character("[") >>|
-    sepBy(json(), character(",")) >>- { items in
-      character("]") >>| create(.array(items))
+    char("[") >>|
+    sepBy(json(), char(",")) >>- { items in
+      char("]") >>| create(.array(items))
     }
   )
 }
 
 func dictionary () -> Parser<Json, scv>.T {
   return attempt(
-    character("{") >>|
-    sepBy(dictionaryItem(), character(",")) >>- { items in
+    char("{") >>|
+    sepBy(dictionaryItem(), char(",")) >>- { items in
       let r: [String: Json] = items.reduce([:], combine: { acc, item in var r = acc; r[item.0] = item.1; return r})
-      return character("}") >>| create(.dictionary(r))
+      return char("}") >>| create(.dictionary(r))
     }
   )
 }
 
 func dictionaryItem () -> Parser<(String, Json), scv>.T {
   return quotedString() >>- { k in
-    character(":") >>|
+    char(":") >>|
     json() >>- { v in
       create((k.getString(), v))
     }

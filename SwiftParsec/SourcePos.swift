@@ -53,6 +53,10 @@ public struct SourcePos: CustomStringConvertible, Comparable {
     string.characters.forEach { update($0) }
   }
 
+  mutating func update (_ cs: [Character]) {
+    cs.forEach { update($0) }
+  }
+
   /**
       Update a source position given a character. If the character is a
       newline (`\n`) the line number is incremented by 1. If the character

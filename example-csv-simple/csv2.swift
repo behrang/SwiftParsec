@@ -1,12 +1,12 @@
 import SwiftParsec
 
 func csvFile2 () -> Parser<[[String]], String.CharacterView>.T {
-  // return many(endBy(sepBy(cellContent(), character(",")), character("\n")))
+  // return many(endBy(sepBy(cellContent(), char(",")), char("\n")))
   return endBy(line2(), eol2())
 }
 
 func line2 () -> Parser<[String], String.CharacterView>.T {
-  return sepBy(cell2(), character(","))
+  return sepBy(cell2(), char(","))
 }
 
 func cell2 () -> Parser<String, String.CharacterView>.T {
@@ -14,7 +14,7 @@ func cell2 () -> Parser<String, String.CharacterView>.T {
 }
 
 func eol2 () -> Parser<Character, String.CharacterView>.T {
-  return character("\n")
+  return char("\n")
 }
 
 func parseCSV2 (_ input: String) {

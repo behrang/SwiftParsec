@@ -29,7 +29,7 @@ func cells () -> Parser<[String], String.CharacterView>.T {
 }
 
 func remainingCells () -> Parser<[String], String.CharacterView>.T {
-  return (character(",") >>| cells()) <|> create([])
+  return (char(",") >>| cells()) <|> create([])
 }
 
 func cellContent () -> Parser<String, String.CharacterView>.T {
@@ -37,7 +37,7 @@ func cellContent () -> Parser<String, String.CharacterView>.T {
 }
 
 func eol () -> Parser<Character, String.CharacterView>.T {
-  return character("\n") <?> "\\n"
+  return char("\n") <?> "\\n"
 }
 
 func parseCSV (_ input: String) {

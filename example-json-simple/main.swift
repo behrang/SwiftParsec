@@ -20,7 +20,7 @@ import SwiftParsec
 // print(test2()(input2))
 
 // func test3 () -> Parser<[Character], String.CharacterView>.T {
-//   return attempt(string("let".characters) <?> "let" >>- { _ in character(" ") >>- { _ in letter() >>- { _ in create([Character("-")])} }}) <|> identifier()
+//   return attempt(string("let") <?> "let" >>- { _ in char(" ") >>- { _ in letter() >>- { _ in create([Character("-")])} }}) <|> identifier()
 // }
 // let input3: State<String.CharacterView> = "*letter"
 // print(test3()(input3))
