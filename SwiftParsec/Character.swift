@@ -13,6 +13,10 @@ public func oneOf<c: Collection where c.SubSequence == c, c.Iterator.Element == 
   return satisfy { c in cs.contains(c) }
 }
 
+public func oneOf<c: Collection where c.SubSequence == c, c.Iterator.Element == Character> (_ s: String) -> Parser<Character, c>.T {
+  return oneOf(Array(s.characters))
+}
+
 /**
     As the dual of 'oneOf', `noneOf(cs)` succeeds if the current
     character *not* in the supplied list of characters `cs`. Returns the
@@ -22,6 +26,10 @@ public func oneOf<c: Collection where c.SubSequence == c, c.Iterator.Element == 
 */
 public func noneOf<c: Collection where c.SubSequence == c, c.Iterator.Element == Character> (_ cs: [Character]) -> Parser<Character, c>.T {
   return satisfy { c in !cs.contains(c) }
+}
+
+public func noneOf<c: Collection where c.SubSequence == c, c.Iterator.Element == Character> (_ s: String) -> Parser<Character, c>.T {
+  return noneOf(Array(s.characters))
 }
 
 /**
