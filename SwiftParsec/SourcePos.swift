@@ -28,6 +28,7 @@ public struct SourcePos: CustomStringConvertible, Comparable {
 
   mutating func incrementLine (_ n: Int = 1) {
     line += n
+    column = 1
   }
 
   mutating func incrementColumn (_ n: Int = 1) {
@@ -49,8 +50,8 @@ public struct SourcePos: CustomStringConvertible, Comparable {
   /**
       Updates the source position by calling `update` on every character.
   */
-  mutating func update (_ string: String) {
-    string.characters.forEach { update($0) }
+  mutating func update (_ s: String) {
+    s.characters.forEach { update($0) }
   }
 
   mutating func update (_ cs: [Character]) {

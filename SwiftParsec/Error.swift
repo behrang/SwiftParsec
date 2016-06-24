@@ -45,7 +45,7 @@ public struct ParseError: CustomStringConvertible {
   }
 
   public var description: String {
-    return String(pos) + ":" + showErrorMessage(sortedMessages)
+    return String(pos) + ": " + showErrorMessage(sortedMessages)
   }
 }
 
@@ -84,10 +84,10 @@ enum Message: Comparable {
   // Extract the message string from an error message
   var string: String {
     switch self {
-    case let .sysUnExpect(s): return s
-    case let .unExpect(s): return s
-    case let .expect(s): return s
-    case let .message(s): return s
+    case let .sysUnExpect(s): return String(reflecting: s)
+    case let .unExpect(s): return String(reflecting: s)
+    case let .expect(s): return String(reflecting: s)
+    case let .message(s): return String(reflecting: s)
     }
   }
 
@@ -174,7 +174,7 @@ func showErrorMessage (_ msgs: [Message]) -> String {
 }
 
 func showMany (_ pre: String, _ msgs: [Message]) -> String {
-  let messages = msgs.map { $0.string }.filter { !$0.isEmpty }
+  let messages = msgs.map{ $0.string }.filter{ !$0.isEmpty }
   if messages.isEmpty {
     return ""
   } else if pre.isEmpty {
