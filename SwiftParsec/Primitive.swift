@@ -206,10 +206,12 @@ public func labels<a, c: Collection> (_ p: Parser<a, c>.T, _ msgs: [String]) -> 
 
 func setExpectErrors (_ err: ParseError, _ msgs: [String]) -> ParseError {
   var error = err
-  if msgs.isEmpty {
-    error.setMessage(.expect(""))
+  if let head = msgs.first {
+    let tail = msgs.dropFirst()
+    error.setMessage(.expect(head))
+    tail.forEach { msg in error.addMessage(.expect(msg)) }
   } else {
-    msgs.forEach { msg in error.addMessage(.expect(msg)) }
+    error.setMessage(.expect(""))
   }
   return error
 }
