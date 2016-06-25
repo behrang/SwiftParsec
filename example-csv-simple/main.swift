@@ -26,7 +26,7 @@ func main () {
 
 func format (_ data: [[String]]) {
   data.forEach{ item in
-    print(item.joined(separator: "\t "))
+    print(item.joined(separator: "\t"))
   }
 }
 
