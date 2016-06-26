@@ -59,7 +59,7 @@ public func newline<c: Collection where c.SubSequence == c, c.Iterator.Element =
     Returns a newline character.
 */
 public func crlf<c: Collection where c.SubSequence == c, c.Iterator.Element == Character> () -> Parser<Character, c>.T {
-  return char("\r") >>| char("\n") <?> "crlf new-line"
+  return char("\r") >>> char("\n") <?> "crlf new-line"
 }
 
 /**

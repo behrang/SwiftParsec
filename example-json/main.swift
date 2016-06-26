@@ -10,7 +10,7 @@ enum Json {
 }
 
 func jsonFile () -> Parser<Json, String.CharacterView>.T {
-  return spaces() >>| value() |<< eof()
+  return spaces() >>> value() <<< eof()
 }
 
 func value () -> Parser<Json, String.CharacterView>.T {
@@ -29,7 +29,7 @@ func str () -> Parser<Json, String.CharacterView>.T {
 
 func quotedString () -> Parser<String, String.CharacterView>.T {
   return between(quote(), quote(), many(quotedCharacter()))
-        >>- { cs in create(String(cs)) } |<< spaces() <?> "quoted string"
+        >>- { cs in create(String(cs)) } <<< spaces() <?> "quoted string"
 }
 
 func quotedCharacter () -> Parser<Character, String.CharacterView>.T {
@@ -41,15 +41,15 @@ func quotedCharacter () -> Parser<Character, String.CharacterView>.T {
     chars.append(Character(UnicodeScalar(i)))
   }
   return noneOf(chars)
-      <|> attempt(string("\\\"")) >>| create("\"")
-      <|> attempt(string("\\\\")) >>| create("\\")
-      <|> attempt(string("\\/")) >>| create("/")
-      <|> attempt(string("\\b")) >>| create("\u{8}")
-      <|> attempt(string("\\f")) >>| create("\u{c}")
-      <|> attempt(string("\\n")) >>| create("\n")
-      <|> attempt(string("\\r")) >>| create("\r")
-      <|> attempt(string("\\t")) >>| create("\t")
-      <|> attempt(string("\\u") >>| count(4, hexDigit()) >>- { hds in
+      <|> attempt(string("\\\"")) >>> create("\"")
+      <|> attempt(string("\\\\")) >>> create("\\")
+      <|> attempt(string("\\/")) >>> create("/")
+      <|> attempt(string("\\b")) >>> create("\u{8}")
+      <|> attempt(string("\\f")) >>> create("\u{c}")
+      <|> attempt(string("\\n")) >>> create("\n")
+      <|> attempt(string("\\r")) >>> create("\r")
+      <|> attempt(string("\\t")) >>> create("\t")
+      <|> attempt(string("\\u") >>> count(4, hexDigit()) >>- { hds in
             let code = String(hds)
             let i = Int(code, radix: 16)!
             return create(Character(UnicodeScalar(i)))
@@ -70,7 +70,7 @@ func number () -> Parser<Json, String.CharacterView>.T {
         }
       }
     }
-  } |<< spaces() <?> "number"
+  } <<< spaces() <?> "number"
 }
 
 func numberSign () -> Parser<String, String.CharacterView>.T {
@@ -82,12 +82,12 @@ func numberFixed () -> Parser<String, String.CharacterView>.T {
 }
 
 func numberFraction () -> Parser<String, String.CharacterView>.T {
-  return char(".") >>| many1(digit()) >>- { create("." + String($0)) }
+  return char(".") >>> many1(digit()) >>- { create("." + String($0)) }
     <|> create("")
 }
 
 func numberExponent () -> Parser<String, String.CharacterView>.T {
-  return oneOf("eE") >>| option("+", oneOf("+-")) >>- { sign in
+  return oneOf("eE") >>> option("+", oneOf("+-")) >>- { sign in
       many1(digit()) >>- { digits in create("e" + String(sign) + String(digits)) }
     }
     <|> create("")
@@ -103,7 +103,7 @@ func object () -> Parser<Json, String.CharacterView>.T {
 
 func pair () -> Parser<(String, Json), String.CharacterView>.T {
   return quotedString() >>- { k in
-    colon() >>| value() >>- { v in
+    colon() >>> value() >>- { v in
       create((k, v))
     }
   } <?> "key:value pair"
@@ -123,36 +123,36 @@ func array () -> Parser<Json, String.CharacterView>.T {
 }
 
 func bool () -> Parser<Json, String.CharacterView>.T {
-  return (string("true") >>| create(.bool(true)) |<< spaces() <?> "true")
-      <|> (string("false") >>| create(.bool(false)) |<< spaces() <?> "false")
+  return (string("true") >>> create(.bool(true)) <<< spaces() <?> "true")
+      <|> (string("false") >>> create(.bool(false)) <<< spaces() <?> "false")
 }
 
 func null () -> Parser<Json, String.CharacterView>.T {
-  return string("null") >>| create(.null) |<< spaces() <?> "null"
+  return string("null") >>> create(.null) <<< spaces() <?> "null"
 }
 
 func leftBracket () -> Parser<Character, String.CharacterView>.T {
-  return char("[") |<< spaces() <?> "open square bracket"
+  return char("[") <<< spaces() <?> "open square bracket"
 }
 
 func rightBracket () -> Parser<Character, String.CharacterView>.T {
-  return char("]") |<< spaces() <?> "close square bracket"
+  return char("]") <<< spaces() <?> "close square bracket"
 }
 
 func leftBrace () -> Parser<Character, String.CharacterView>.T {
-  return char("{") |<< spaces() <?> "open curly bracket"
+  return char("{") <<< spaces() <?> "open curly bracket"
 }
 
 func rightBrace () -> Parser<Character, String.CharacterView>.T {
-  return char("}") |<< spaces() <?> "close curly bracket"
+  return char("}") <<< spaces() <?> "close curly bracket"
 }
 
 func comma () -> Parser<Character, String.CharacterView>.T {
-  return char(",") |<< spaces() <?> "comma"
+  return char(",") <<< spaces() <?> "comma"
 }
 
 func colon () -> Parser<Character, String.CharacterView>.T {
-  return char(":") |<< spaces() <?> "colon"
+  return char(":") <<< spaces() <?> "colon"
 }
 
 func quote () -> Parser<Character, String.CharacterView>.T {

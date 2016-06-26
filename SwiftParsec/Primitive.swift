@@ -78,14 +78,14 @@ public func >>- <a, b, c: Collection> (p: Parser<a, c>.T, f: (a) -> Parser<b, c>
   return parserBind(p, f)
 }
 
-infix operator >>| { associativity left precedence 107 }
-public func >>| <a, b, c: Collection> (p: Parser<a, c>.T, q: Parser<b, c>.T) -> Parser<b, c>.T {
+infix operator >>> { associativity left precedence 107 }
+public func >>> <a, b, c: Collection> (p: Parser<a, c>.T, q: Parser<b, c>.T) -> Parser<b, c>.T {
   return p >>- { _ in q }
 }
 
-infix operator |<< { associativity left precedence 107 }
-public func |<< <a, b, c: Collection> (p: Parser<a, c>.T, q: Parser<b, c>.T) -> Parser<a, c>.T {
-  return p >>- { x in q >>| create(x) }
+infix operator <<< { associativity left precedence 107 }
+public func <<< <a, b, c: Collection> (p: Parser<a, c>.T, q: Parser<b, c>.T) -> Parser<a, c>.T {
+  return p >>- { x in q >>> create(x) }
 }
 
 /**
@@ -440,7 +440,7 @@ func append<a> (_ next: a, _ list: [a]) -> [a] {
         }
 */
 public func skipMany<a, c: Collection> (_ p: Parser<a, c>.T) -> Parser<(), c>.T {
-  return manyAccum({ _, _ in [] }, p) >>| create(())
+  return manyAccum({ _, _ in [] }, p) >>> create(())
 }
 
 public func manyAccum<a, c: Collection> (_ acc: (a, [a]) -> [a], _ p: Parser<a, c>.T) -> Parser<[a], c>.T {
@@ -557,7 +557,7 @@ public func getInput<c: Collection> () -> Parser<c, c>.T {
     `setPosition(pos)` sets the current source position to `pos`.
 */
 public func setPosition<c: Collection> (_ pos: SourcePos) -> Parser<(), c>.T {
-  return updateParserState { state in State(state.input, pos) } >>| create(())
+  return updateParserState { state in State(state.input, pos) } >>> create(())
 }
 
 /**
@@ -566,7 +566,7 @@ public func setPosition<c: Collection> (_ pos: SourcePos) -> Parser<(), c>.T {
     files.
 */
 public func setInput<c: Collection> (_ input: c) -> Parser<(), c>.T {
-  return updateParserState { state in State(input, state.pos) } >>| create(())
+  return updateParserState { state in State(input, state.pos) } >>> create(())
 }
 
 /**

@@ -43,7 +43,7 @@ public func optionMaybe<a, c: Collection> (_ p: Parser<a, c>.T) -> Parser<a?, c>
     of `p`.
 */
 public func optional<a, c: Collection> (_ p: Parser<a, c>.T) -> Parser<(), c>.T {
-  return p >>| create(()) <|> create(())
+  return p >>> create(()) <|> create(())
 }
 
 /**
@@ -55,8 +55,8 @@ public func optional<a, c: Collection> (_ p: Parser<a, c>.T) -> Parser<(), c>.T 
         }
 */
 public func between<a, c: Collection, x, y> (_ open: Parser<x, c>.T, _ close: Parser<y, c>.T, _ p: Parser<a, c>.T) -> Parser<a, c>.T {
-  return open >>| p >>- { x in
-    close >>| create(x)
+  return open >>> p >>- { x in
+    close >>> create(x)
   }
 }
 
@@ -65,7 +65,7 @@ public func between<a, c: Collection, x, y> (_ open: Parser<x, c>.T, _ close: Pa
     its result.
 */
 public func skipMany1<a, c: Collection> (_ p: Parser<a, c>.T) -> Parser<(), c>.T {
-  return p >>| skipMany(p)
+  return p >>> skipMany(p)
 }
 
 /**
@@ -104,7 +104,7 @@ public func sepBy<a, c: Collection, x> (_ p: Parser<a, c>.T, _ sep: Parser<x, c>
 */
 public func sepBy1<a, c: Collection, x> (_ p: Parser<a, c>.T, _ sep: Parser<x, c>.T) -> Parser<[a], c>.T {
   return p >>- { x in
-    many(sep >>| p) >>- { xs in
+    many(sep >>> p) >>- { xs in
       var r = [x]
       r.append(contentsOf: xs)
       return create(r)
@@ -119,7 +119,7 @@ public func sepBy1<a, c: Collection, x> (_ p: Parser<a, c>.T, _ sep: Parser<x, c
 */
 public func sepEndBy1<a, c: Collection, x> (_ p: Parser<a, c>.T, _ sep: Parser<x, c>.T) -> Parser<[a], c>.T {
   return p >>- { x in
-    sep >>| sepEndBy(p, sep) >>- { xs in
+    sep >>> sepEndBy(p, sep) >>- { xs in
       var r = [x]
       r.append(contentsOf: xs)
       return create(r)
@@ -143,7 +143,7 @@ public func sepEndBy<a, c: Collection, x> (_ p: Parser<a, c>.T, _ sep: Parser<x,
     and ended by `sep`. Returns a list of values returned by `p`.
 */
 public func endBy1<a, c: Collection, x> (_ p: Parser<a, c>.T, _ sep: Parser<x, c>.T) -> Parser<[a], c>.T {
-  return many1(p >>- { x in sep >>| create(x) })
+  return many1(p >>- { x in sep >>> create(x) })
 }
 
 /**
@@ -153,7 +153,7 @@ public func endBy1<a, c: Collection, x> (_ p: Parser<a, c>.T, _ sep: Parser<x, c
         cStatements = endBy(cStatement, semi())
 */
 public func endBy<a, c: Collection, x> (_ p: Parser<a, c>.T, _ sep: Parser<x, c>.T) -> Parser<[a], c>.T {
-  return many(p >>- { x in sep >>| create(x) })
+  return many(p >>- { x in sep >>> create(x) })
 }
 
 /**
@@ -223,12 +223,12 @@ public func chainl<a, c: Collection> (_ p: Parser<a, c>.T, _ op: Parser<(a, a) -
         }
 
         func mulop<c: Collection> () -> Parser<(Int, Int) -> Int, c>.T {
-          return symbol("*") >>| create(*)
-              <|> symbol("/") >>| create(/)
+          return symbol("*") >>> create(*)
+              <|> symbol("/") >>> create(/)
         }
         func addop<c: Collection> () -> Parser<(Int, Int) -> Int, c>.T {
-          return symbol("+") >>| create(+)
-              <|> symbol("-") >>| create(-)
+          return symbol("+") >>> create(+)
+              <|> symbol("-") >>> create(-)
         }
 */
 public func chainl1<a, c: Collection> (_ p: Parser<a, c>.T, _ op: Parser<(a, a) -> a, c>.T) -> Parser<a, c>.T {
@@ -292,7 +292,7 @@ public func eof<c: Collection where c.SubSequence == c> () -> Parser<(), c>.T {
     actually an identifier (for example `lets`). We can program this
     behaviour as follows:
 
-        let keywordLet = attempt(string("let") >>| notFollowedBy(alphaNum()))
+        let keywordLet = attempt(string("let") >>> notFollowedBy(alphaNum()))
 */
 public func notFollowedBy<a, c: Collection> (_ p: Parser<a, c>.T) -> Parser<(), c>.T {
   return attempt(
@@ -306,7 +306,7 @@ public func notFollowedBy<a, c: Collection> (_ p: Parser<a, c>.T) -> Parser<(), 
     parser `end` succeeds. Returns the list of values returned by `p`.
     This parser can be used to scan comments:
 
-        let simpleComment = string("<!--") >>|
+        let simpleComment = string("<!--") >>>
                             manyTill(anyChar(), attempt(string("-->")))
 
     Note the overlapping parsers `anyChar` and `string("-->")`, and
@@ -314,7 +314,7 @@ public func notFollowedBy<a, c: Collection> (_ p: Parser<a, c>.T) -> Parser<(), 
 */
 public func manyTill<a, c: Collection, x> (_ p: Parser<a, c>.T, _ end: Parser<x, c>.T) -> Parser<[a], c>.T {
   func scan () -> Parser<[a], c>.T {
-    return end >>| create([])
+    return end >>> create([])
         <|> p >>- { x in
           scan() >>- { xs in
             var r = [x]

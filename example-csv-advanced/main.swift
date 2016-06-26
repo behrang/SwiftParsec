@@ -21,7 +21,7 @@ func quotedCellContent () -> Parser<String, String.CharacterView>.T {
 }
 
 func quotedCellChar () -> Parser<Character, String.CharacterView>.T {
-  return noneOf("\"") <|> attempt((string("\"\"") <?> "escaped double quote") >>| create("\"") )
+  return noneOf("\"") <|> attempt((string("\"\"") <?> "escaped double quote") >>> create("\"") )
 }
 
 func simpleCell () -> Parser<String, String.CharacterView>.T {
