@@ -1,0 +1,51 @@
+{
+  "name": "Christopher Nolan",
+  "age": 45,
+  "movies": [
+    {
+      "title": "Following",
+      "year": 1998,
+      "roles": ["Director", "Producer", "Writer"]
+    },
+    {
+      "title": "Memento",
+      "year": 2000,
+      "roles": ["Director", "Writer"]
+    },
+    {
+      "title": "Insomnia",
+      "year": 2002,
+      "roles": ["Director"]
+    },
+    {
+      "title": "Batman Begins",
+      "year": 2005,
+      "roles": ["Director", "Writer"]
+    },
+    {
+      "title": "The Prestige",
+      "year": 2006,
+      "roles": ["Director", "Producer", "Writer"]
+    },
+    {
+      "title": "The Dark Knight",
+      "year": 2008,
+      "roles": ["Director", "Producer", "Writer"]
+    },
+    {
+      "title": "Inception",
+      "year": 2010,
+      "roles": ["Director", "Producer", "Writer"]
+    },
+    {
+      "title": "The Dark Knight Rises",
+      "year": 2012,
+      "roles": ["Director", "Producer", "Writer"]
+    },
+    {
+      "title": "Interstellar",
+      "year": 2014,
+      "roles": ["Director", "Producer", "Writer"]
+    }
+  ]
+}

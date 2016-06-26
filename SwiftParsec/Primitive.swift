@@ -83,6 +83,11 @@ public func >>| <a, b, c: Collection> (p: Parser<a, c>.T, q: Parser<b, c>.T) -> 
   return p >>- { _ in q }
 }
 
+infix operator |<< { associativity left precedence 107 }
+public func |<< <a, b, c: Collection> (p: Parser<a, c>.T, q: Parser<b, c>.T) -> Parser<a, c>.T {
+  return p >>- { x in q >>| create(x) }
+}
+
 /**
     The parser `unexpected(msg)` always fails with an unexpected error
     message `msg` without consuming any input.
