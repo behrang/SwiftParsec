@@ -1,4 +1,11 @@
 /**
+    `StringParser<a>` is an alias for `Parser<a, String.CharacterView>`.
+*/
+public enum StringParser<a> {
+  public typealias T = Parser<a, String.CharacterView>.T
+}
+
+/**
     `parse(p, file: filePath)` runs a string parser `p` on the
     input read from `filePath` using 'String(contentsOfFile: filePath)'.
     Returns either a 'ParseError' ('left') or a value of type `a` ('right').

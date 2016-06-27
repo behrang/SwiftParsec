@@ -1,14 +1,14 @@
 import SwiftParsec
 
-func csv () -> Parser<[[String]], String.CharacterView>.T {
+func csv () -> StringParser<[[String]]>.T {
   return endBy(line(), char("\n"))
 }
 
-func line () -> Parser<[String], String.CharacterView>.T {
+func line () -> StringParser<[String]>.T {
   return sepBy(cell(), char(","))
 }
 
-func cell () -> Parser<String, String.CharacterView>.T {
+func cell () -> StringParser<String>.T {
   return many1(noneOf(",\n")) >>- { chars in create(String(chars)) }
 }
 

@@ -1,30 +1,30 @@
 import SwiftParsec
 
-func csv () -> Parser<[[String]], String.CharacterView>.T {
+func csv () -> StringParser<[[String]]>.T {
   return endBy(line(), endOfLine())
 }
 
-func line () -> Parser<[String], String.CharacterView>.T {
+func line () -> StringParser<[String]>.T {
   return sepBy(cell(), char(","))
 }
 
-func cell () -> Parser<String, String.CharacterView>.T {
+func cell () -> StringParser<String>.T {
   return quotedCell() <|> simpleCell()
 }
 
-func quotedCell () -> Parser<String, String.CharacterView>.T {
+func quotedCell () -> StringParser<String>.T {
   return between(char("\""), char("\""), quotedCellContent())
 }
 
-func quotedCellContent () -> Parser<String, String.CharacterView>.T {
+func quotedCellContent () -> StringParser<String>.T {
   return many(quotedCellChar()) >>- { cs in create(String(cs)) }
 }
 
-func quotedCellChar () -> Parser<Character, String.CharacterView>.T {
+func quotedCellChar () -> StringParser<Character>.T {
   return noneOf("\"") <|> attempt((string("\"\"") <?> "escaped double quote") >>> create("\"") )
 }
 
-func simpleCell () -> Parser<String, String.CharacterView>.T {
+func simpleCell () -> StringParser<String>.T {
   return many(noneOf(",\n")) >>- { cs in create(String(cs)) }
 }
 

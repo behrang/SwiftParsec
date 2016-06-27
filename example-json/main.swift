@@ -9,11 +9,11 @@ enum Json {
   case object([String: Json])
 }
 
-func jsonFile () -> Parser<Json, String.CharacterView>.T {
+func jsonFile () -> StringParser<Json>.T {
   return spaces() >>> value() <<< eof()
 }
 
-func value () -> Parser<Json, String.CharacterView>.T {
+func value () -> StringParser<Json>.T {
   return str()
       <|> number()
       <|> object()
@@ -23,16 +23,16 @@ func value () -> Parser<Json, String.CharacterView>.T {
       <?> "json value"
 }
 
-func str () -> Parser<Json, String.CharacterView>.T {
+func str () -> StringParser<Json>.T {
   return quotedString() >>- { s in create(.string(s)) }
 }
 
-func quotedString () -> Parser<String, String.CharacterView>.T {
+func quotedString () -> StringParser<String>.T {
   return between(quote(), quote(), many(quotedCharacter()))
         >>- { cs in create(String(cs)) } <<< spaces() <?> "quoted string"
 }
 
-func quotedCharacter () -> Parser<Character, String.CharacterView>.T {
+func quotedCharacter () -> StringParser<Character>.T {
   var chars: [Character] = ["\"", "\\"]
   for i in 0x00...0x1f {
     chars.append(Character(UnicodeScalar(i)))
@@ -56,7 +56,7 @@ func quotedCharacter () -> Parser<Character, String.CharacterView>.T {
           })
 }
 
-func number () -> Parser<Json, String.CharacterView>.T {
+func number () -> StringParser<Json>.T {
   return numberSign() >>- { sign in
     numberFixed() >>- { fixed in
       numberFraction() >>- { fraction in
@@ -73,27 +73,27 @@ func number () -> Parser<Json, String.CharacterView>.T {
   } <<< spaces() <?> "number"
 }
 
-func numberSign () -> Parser<String, String.CharacterView>.T {
+func numberSign () -> StringParser<String>.T {
   return option("+", string("-"))
 }
 
-func numberFixed () -> Parser<String, String.CharacterView>.T {
+func numberFixed () -> StringParser<String>.T {
   return string("0") <|> many1(digit()) >>- { create(String($0)) }
 }
 
-func numberFraction () -> Parser<String, String.CharacterView>.T {
+func numberFraction () -> StringParser<String>.T {
   return char(".") >>> many1(digit()) >>- { create("." + String($0)) }
     <|> create("")
 }
 
-func numberExponent () -> Parser<String, String.CharacterView>.T {
+func numberExponent () -> StringParser<String>.T {
   return oneOf("eE") >>> option("+", oneOf("+-")) >>- { sign in
       many1(digit()) >>- { digits in create("e" + String(sign) + String(digits)) }
     }
     <|> create("")
 }
 
-func object () -> Parser<Json, String.CharacterView>.T {
+func object () -> StringParser<Json>.T {
   return between(leftBrace(), rightBrace(), sepBy(pair(), comma())) >>- { ps in
     var r: [String: Json] = [:]
     ps.forEach { p in r[p.0] = p.1 }
@@ -101,7 +101,7 @@ func object () -> Parser<Json, String.CharacterView>.T {
   } <?> "object"
 }
 
-func pair () -> Parser<(String, Json), String.CharacterView>.T {
+func pair () -> StringParser<(String, Json)>.T {
   return quotedString() >>- { k in
     colon() >>> value() >>- { v in
       create((k, v))
@@ -109,12 +109,12 @@ func pair () -> Parser<(String, Json), String.CharacterView>.T {
   } <?> "key:value pair"
 }
 
-func array () -> Parser<Json, String.CharacterView>.T {
+func array () -> StringParser<Json>.T {
   // the next line crashes the compiler with "Segmentation fault: 11"
   // return between(leftBracket(), rightBracket(), sepBy(value(), comma()))
   //     >>- { js in create(.array(js)) }
   // as a result, we can't have an array within an array
-  func element () -> Parser<Json, String.CharacterView>.T {
+  func element () -> StringParser<Json>.T {
     return null() <|> bool() <|> number() <|> str() <|> object()
   }
   return between(leftBracket(), rightBracket(), sepBy(element(), comma()))
@@ -122,40 +122,40 @@ func array () -> Parser<Json, String.CharacterView>.T {
       <?> "array"
 }
 
-func bool () -> Parser<Json, String.CharacterView>.T {
+func bool () -> StringParser<Json>.T {
   return (string("true") >>> create(.bool(true)) <<< spaces() <?> "true")
       <|> (string("false") >>> create(.bool(false)) <<< spaces() <?> "false")
 }
 
-func null () -> Parser<Json, String.CharacterView>.T {
+func null () -> StringParser<Json>.T {
   return string("null") >>> create(.null) <<< spaces() <?> "null"
 }
 
-func leftBracket () -> Parser<Character, String.CharacterView>.T {
+func leftBracket () -> StringParser<Character>.T {
   return char("[") <<< spaces() <?> "open square bracket"
 }
 
-func rightBracket () -> Parser<Character, String.CharacterView>.T {
+func rightBracket () -> StringParser<Character>.T {
   return char("]") <<< spaces() <?> "close square bracket"
 }
 
-func leftBrace () -> Parser<Character, String.CharacterView>.T {
+func leftBrace () -> StringParser<Character>.T {
   return char("{") <<< spaces() <?> "open curly bracket"
 }
 
-func rightBrace () -> Parser<Character, String.CharacterView>.T {
+func rightBrace () -> StringParser<Character>.T {
   return char("}") <<< spaces() <?> "close curly bracket"
 }
 
-func comma () -> Parser<Character, String.CharacterView>.T {
+func comma () -> StringParser<Character>.T {
   return char(",") <<< spaces() <?> "comma"
 }
 
-func colon () -> Parser<Character, String.CharacterView>.T {
+func colon () -> StringParser<Character>.T {
   return char(":") <<< spaces() <?> "colon"
 }
 
-func quote () -> Parser<Character, String.CharacterView>.T {
+func quote () -> StringParser<Character>.T {
   return char("\"") <?> "double quote"
 }
 
