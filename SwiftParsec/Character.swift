@@ -3,33 +3,25 @@
 */
 
 /**
-    `oneOf(cs)` succeeds if the current character is in the supplied
-    list of characters `cs`. Returns the parsed character. See also
+    `oneOf(s)` succeeds if the current character is in the supplied
+    string of characters `s`. Returns the parsed character. See also
     'satisfy'.
 
         let vowel = oneOf("aeiou")
 */
-public func oneOf<c: Collection where c.SubSequence == c, c.Iterator.Element == Character> (_ cs: [Character]) -> Parser<Character, c>.T {
-  return satisfy { c in cs.contains(c) }
-}
-
 public func oneOf<c: Collection where c.SubSequence == c, c.Iterator.Element == Character> (_ s: String) -> Parser<Character, c>.T {
-  return oneOf(Array(s.characters))
+  return satisfy { c in s.contains(String(c)) }
 }
 
 /**
-    As the dual of 'oneOf', `noneOf(cs)` succeeds if the current
-    character *not* in the supplied list of characters `cs`. Returns the
+    As the dual of 'oneOf', `noneOf(s)` succeeds if the current
+    character is *not* in the supplied string of characters `s`. Returns the
     parsed character.
 
         let consonant = noneOf("aeiou")
 */
-public func noneOf<c: Collection where c.SubSequence == c, c.Iterator.Element == Character> (_ cs: [Character]) -> Parser<Character, c>.T {
-  return satisfy { c in !cs.contains(c) }
-}
-
 public func noneOf<c: Collection where c.SubSequence == c, c.Iterator.Element == Character> (_ s: String) -> Parser<Character, c>.T {
-  return noneOf(Array(s.characters))
+  return satisfy { c in !s.contains(String(c)) }
 }
 
 /**
@@ -178,18 +170,14 @@ public func satisfy<c: Collection where c.SubSequence == c, c.Iterator.Element =
         let divOrMod = string("div")
                     <|> string("mod")
 */
-public func string<c: Collection where c.SubSequence == c, c.Iterator.Element == Character> (_ s: [Character]) -> Parser<[Character], c>.T {
+public func string<c: Collection where c.SubSequence == c, c.Iterator.Element == Character> (_ s: String) -> Parser<String, c>.T {
   func show (_ cs: [Character]) -> String {
-    return String(cs)
+    return String(reflecting: String(cs))
   }
   func next (_ pos: SourcePos, _ cs: [Character]) -> SourcePos {
     var newPos = pos
     newPos.update(cs)
     return newPos
   }
-  return tokens(show, next, s)
-}
-
-public func string<c: Collection where c.SubSequence == c, c.Iterator.Element == Character> (_ s: String) -> Parser<String, c>.T {
-  return string(Array(s.characters)) >>- { cs in create(String(cs)) }
+  return tokens(show, next, Array(s.characters)) >>- { cs in create(String(cs)) }
 }

@@ -338,13 +338,13 @@ public func token<a, c: Collection where c.SubSequence == c> (_ showToken: (c.It
   return tokenPrim(showToken, nextPosition, test)
 }
 
-public func tokens<a: Equatable, c: Collection where a == c.Iterator.Element, c.SubSequence == c> (_ showTokens: ([c.Iterator.Element]) -> String, _ nextPosition: (SourcePos, [c.Iterator.Element]) -> SourcePos, _ tts: [c.Iterator.Element]) -> Parser<[a], c>.T {
+public func tokens<c: Collection where c.Iterator.Element: Equatable, c.SubSequence == c> (_ showTokens: ([c.Iterator.Element]) -> String, _ nextPosition: (SourcePos, [c.Iterator.Element]) -> SourcePos, _ tts: [c.Iterator.Element]) -> Parser<[c.Iterator.Element], c>.T {
   if let tok = tts.first {
     let toks = tts.dropFirst()
     return { state in
       let errEof = ParseError(state.pos, [.sysUnExpect(""), .expect(showTokens(tts))])
       let errExpect = { x in ParseError(state.pos, [.sysUnExpect(showTokens([x])), .expect(showTokens(tts))]) }
-      func walk (_ restToks: ArraySlice<c.Iterator.Element>, _ restInput: c) -> Consumed<[a], c> {
+      func walk (_ restToks: ArraySlice<c.Iterator.Element>, _ restInput: c) -> Consumed<[c.Iterator.Element], c> {
         if let t = restToks.first {
           let ts = restToks.dropFirst()
           if let x = restInput.first {
