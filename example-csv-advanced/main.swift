@@ -12,6 +12,10 @@ func cell () -> StringParser<String>.T {
   return quotedCell() <|> simpleCell()
 }
 
+func simpleCell () -> StringParser<String>.T {
+  return many(noneOf(",\n")) >>- { cs in create(String(cs)) }
+}
+
 func quotedCell () -> StringParser<String>.T {
   return between(char("\""), char("\""), quotedCellContent())
 }
@@ -21,11 +25,11 @@ func quotedCellContent () -> StringParser<String>.T {
 }
 
 func quotedCellChar () -> StringParser<Character>.T {
-  return noneOf("\"") <|> attempt((string("\"\"") <?> "escaped double quote") >>> create("\"") )
+  return noneOf("\"") <|> escapedQuote()
 }
 
-func simpleCell () -> StringParser<String>.T {
-  return many(noneOf(",\n")) >>- { cs in create(String(cs)) }
+func escapedQuote () -> StringParser<Character>.T {
+  return attempt(string("\"\"") <?> "escaped double quote") >>> create("\"")
 }
 
 func main () {
@@ -42,7 +46,7 @@ func main () {
 
 func format (_ data: [[String]]) {
   data.forEach{ item in
-    print(item.joined(separator: "\t"))
+    print(item.joined(separator: "\n"), terminator: "\n\n")
   }
 }
 

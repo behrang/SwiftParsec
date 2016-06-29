@@ -32,6 +32,10 @@ func quotedString () -> StringParser<String>.T {
         >>- { cs in create(String(cs)) } <<< spaces() <?> "quoted string"
 }
 
+func quote () -> StringParser<Character>.T {
+  return char("\"") <?> "double quote"
+}
+
 func quotedCharacter () -> StringParser<Character>.T {
   var chars: [Character] = ["\"", "\\"]
   for i in 0x00...0x1f {
@@ -101,44 +105,6 @@ func object () -> StringParser<Json>.T {
   } <?> "object"
 }
 
-func pair () -> StringParser<(String, Json)>.T {
-  return quotedString() >>- { k in
-    colon() >>> value() >>- { v in
-      create((k, v))
-    }
-  } <?> "key:value pair"
-}
-
-func array () -> StringParser<Json>.T {
-  // the next line crashes the compiler with "Segmentation fault: 11"
-  // return between(leftBracket(), rightBracket(), sepBy(value(), comma()))
-  //     >>- { js in create(.array(js)) }
-  // as a result, we can't have an array within an array
-  func element () -> StringParser<Json>.T {
-    return null() <|> bool() <|> number() <|> str() <|> object()
-  }
-  return between(leftBracket(), rightBracket(), sepBy(element(), comma()))
-      >>- { js in create(.array(js)) }
-      <?> "array"
-}
-
-func bool () -> StringParser<Json>.T {
-  return (string("true") >>> create(.bool(true)) <<< spaces() <?> "true")
-      <|> (string("false") >>> create(.bool(false)) <<< spaces() <?> "false")
-}
-
-func null () -> StringParser<Json>.T {
-  return string("null") >>> create(.null) <<< spaces() <?> "null"
-}
-
-func leftBracket () -> StringParser<Character>.T {
-  return char("[") <<< spaces() <?> "open square bracket"
-}
-
-func rightBracket () -> StringParser<Character>.T {
-  return char("]") <<< spaces() <?> "close square bracket"
-}
-
 func leftBrace () -> StringParser<Character>.T {
   return char("{") <<< spaces() <?> "open curly bracket"
 }
@@ -155,8 +121,42 @@ func colon () -> StringParser<Character>.T {
   return char(":") <<< spaces() <?> "colon"
 }
 
-func quote () -> StringParser<Character>.T {
-  return char("\"") <?> "double quote"
+func pair () -> StringParser<(String, Json)>.T {
+  return quotedString() >>- { k in
+    colon() >>> value() >>- { v in
+      create((k, v))
+    }
+  } <?> "key:value pair"
+}
+
+func array () -> StringParser<Json>.T {
+  // the next line crashes the compiler with "Segmentation fault: 11"
+  // return between(leftBracket(), rightBracket(), sepBy(value(), comma()))
+  //     >>- { js in create(.array(js)) }
+  // as a result, we can't have an array within an array for now
+  func element () -> StringParser<Json>.T {
+    return null() <|> bool() <|> number() <|> str() <|> object()
+  }
+  return between(leftBracket(), rightBracket(), sepBy(element(), comma()))
+      >>- { js in create(.array(js)) }
+      <?> "array"
+}
+
+func leftBracket () -> StringParser<Character>.T {
+  return char("[") <<< spaces() <?> "open square bracket"
+}
+
+func rightBracket () -> StringParser<Character>.T {
+  return char("]") <<< spaces() <?> "close square bracket"
+}
+
+func bool () -> StringParser<Json>.T {
+  return (string("true") >>> create(.bool(true)) <<< spaces() <?> "true")
+      <|> (string("false") >>> create(.bool(false)) <<< spaces() <?> "false")
+}
+
+func null () -> StringParser<Json>.T {
+  return string("null") >>> create(.null) <<< spaces() <?> "null"
 }
 
 func main () {

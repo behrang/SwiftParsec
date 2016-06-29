@@ -9,7 +9,7 @@ func line () -> StringParser<[String]>.T {
 }
 
 func cell () -> StringParser<String>.T {
-  return many1(noneOf(",\n")) >>- { chars in create(String(chars)) }
+  return many(noneOf(",\n")) >>- { chars in create(String(chars)) }
 }
 
 func main () {
@@ -26,7 +26,7 @@ func main () {
 
 func format (_ data: [[String]]) {
   data.forEach{ item in
-    print(item.joined(separator: "\t"))
+    print(item.joined(separator: "\n"), terminator: "\n\n")
   }
 }
 
