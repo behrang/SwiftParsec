@@ -1,4 +1,4 @@
-# About
+# SwiftParsec
 
 Parsec is an industrial strength, monadic parser combinator library. The original paper is available here: [Parsec: Direct Style Monadic Parser Combinators For The Real World](http://research.microsoft.com/pubs/65201/parsec-paper-letter.pdf). Find more info about Haskell Parsec here: [https://wiki.haskell.org/Parsec](https://wiki.haskell.org/Parsec). To learn more, you may want to read [chapter 16 of Real World Haskell](http://book.realworldhaskell.org/read/using-parsec.html).
 

@@ -4,7 +4,7 @@
 
 /**
     `oneOf(s)` succeeds if the current character is in the supplied
-    string of characters `s`. Returns the parsed character. See also
+    string `s`. Returns the parsed character. See also
     'satisfy'.
 
         let vowel = oneOf("aeiou")
