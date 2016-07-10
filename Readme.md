@@ -765,7 +765,7 @@ import SwiftParsec
 
 Then parsers and combinators from the library can be combined togeether to create more complicated parsers and parse the input stream you want.
 
-## Collection
+## Parse Input
 
 The input stream can be any `Collection` type. A useful `Collection` is `String.CharacterView` which is a `Collection` of `Character`s of the input `String`.
 
@@ -881,6 +881,163 @@ func divOrMod () -> StringParser<String>.T {
     <|> string("mod")
 }
 ```
+
+## Combinators
+
+Combinators are functions for combining other parsers. They can be used on any parser, not only character parsers.
+
+### `choice(_ ps: [Parser<a>]) -> Parser<a>`
+
+`choice(ps)` tries to apply the parsers in the array `ps` in order, until one of them succeeds. Returns the value of the succeeding parser.
+
+### `option(_ x: a, _ p: Parser<a>) -> Parser<a>`
+
+`option(x, p)` tries to apply parser `p`. If `p` fails without consuming input, it returns the value `x`, otherwise the value returned by `p`.
+
+```swift
+func priority () -> StringParser<Int>.T {
+  return option(0, digit() >>- { d in
+    if let i = Int(String(d)) {
+      return create(i)
+    } else {
+      return fail("this will not happen")
+    }
+  })
+}
+```
+
+### `optionMaybe(_ p: Parser<a>) -> Parser<a?>`
+
+`optionMaybe(p)` tries to apply parser `p`.  If `p` fails without consuming input, it returns '.none', otherwise it returns '.some' the value returned by `p`.
+
+### `optional(_ p: Parser<a>) -> Parser<()>`
+
+`optional(p)` tries to apply parser `p`.  It will parse `p` or nothing. It only fails if `p` fails after consuming input. It discards the result of `p`.
+
+### `between(_ open: Parser<x>, _ close: Parser<y>, _ p: Parser<a>) -> Parser<a>`
+
+`between(open, close, p)` parses `open`, followed by `p` and `close`. Returns the value returned by `p`.
+
+```swift
+func braces<a> (_ p: StringParser<a>.T) -> StringParser<a>.T {
+  return between(char("{"), char("}"), p)
+}
+```
+
+### `skipMany1(_ p: Parser<a>) -> Parser<()>`
+
+`skipMany1(p)` applies the parser `p` *one* or more times, skipping its result.
+
+### `many1(_ p: Parser<a>) -> Parser<[a]>`
+
+`many1(p)` applies the parser `p` *one* or more times. Returns an array of the returned values of `p`.
+
+```swift
+func word () -> StringParser<[Character]>.T {
+  return many1(letter())
+}
+```
+
+### `sepBy(_ p: Parser<a>, _ sep: Parser<x>) -> Parser<[a]>`
+
+`sepBy(p, sep)` parses *zero* or more occurrences of `p`, separated by `sep`. Returns a list of values returned by `p`.
+
+```swift
+func commaSep<a> (_ p: StringParser<a>.T) -> StringParser<[a]>.T {
+  return sepBy(p, char(","))
+}
+```
+
+### `sepBy1(_ p: Parser<a>, _sep: Parser<x>) -> Parser<[a]>`
+
+`sepBy1(p, sep)` parses *one* or more occurrences of `p`, separated by `sep`. Returns a list of values returned by `p`.
+
+### `sepEndBy1(_ p: Parser<a>, _ sep: Parser<x>) -> Parser<[a]>`
+
+`sepEndBy1(p, sep)` parses *one* or more occurrences of `p`, separated and optionally ended by `sep`. Returns a list of values returned by `p`.
+
+### `sepEndBy(_ p: Parser<a>, _ sep: Parser<x>) -> Parser<[a]>`
+
+`sepEndBy(p, sep)` parses *zero* or more occurrences of `p`, separated and optionally ended by `sep`. Returns a list of values returned by `p`.
+
+### `endBy1(_ p: Parser<a>, _ sep: Parser<x>) -> Parser<[a]>`
+
+`endBy1(p, sep)` parses *one* or more occurrences of `p`, separated and ended by `sep`. Returns a list of values returned by `p`.
+
+### `endBy(_ p: Parser<a>, _ sep: Parser<x>) -> Parser<[a]>`
+
+`endBy(p, sep)` parses *zero* or more occurrences of `p`, separated and ended by `sep`. Returns a list of values returned by `p`.
+
+### `count(_ n: Int, _ p: Parser<a>) -> Parser<[a]>`
+
+`count(n, p)` parses `n` occurrences of `p`. If `n` is smaller or equal to zero, the parser equals to `create([])`. Returns a list of `n` values returned by `p`.
+
+### `chainr(_ p: Parser<a>, _ op: Parser<(a, a) -> a>, _ x: a) -> Parser<a>`
+
+`chainr(p, op, x)` parses *zero* or more occurrences of `p`, separated by `op`. Returns a value obtained by a *right* associative application of all functions returned by `op` to the values returned by `p`. If there are no occurrences of `p`, the value `x` is returned.
+
+### `chainl(_ p: Parser<a>, _ op: Parser<(a, a) -> a>, _ x: a) -> Parser<a>`
+
+`chainl(p, op, x)` parses *zero* or more occurrences of `p`, separated by `op`. Returns a value obtained by a *left* associative application of all functions returned by `op` to the values returned by `p`. If there are no occurrences of `p`, the value `x` is returned.
+
+### `chainl1(_ p: Parser<a>, _ op: Parser<(a, a) -> a>) -> Parser<a>`
+
+`chainl1(p, op)` parses *one* or more occurrences of `p`, separated by `op`. Returns a value obtained by a *left* associative application of all functions returned by `op` to the values returned by `p`. This parser can for example be used to eliminate left recursion which typically occurs in expression grammars.
+
+```swift
+func expr () -> StringParser<Int>.T {
+  return chainl1(term(), addop())
+}
+func term () -> StringParser<Int>.T {
+  return chainl1(factor(), mulop())
+}
+func factor () -> StringParser<Int>.T {
+  return parens(expr()) <|> integer()
+}
+
+func mulop () -> StringParser<(Int, Int) -> Int>.T {
+  return char("*") >>> create(*)
+      <|> char("/") >>> create(/)
+}
+func addop () -> StringParser<(Int, Int) -> Int>.T {
+  return char("+") >>> create(+)
+      <|> char("-") >>> create(-)
+}
+```
+
+### `chainr1(_ p: Parser<a>, _ op: Parser<(a, a) -> a>) -> Parser<a>`
+
+`chainr1(p, op)` parses *one* or more occurrences of `p`, separated by `op`. Returns a value obtained by a *right* associative application of all functions returned by `op` to the values returned by `p`.
+
+### `anyToken<c: Collection> () -> Parser<c.Iterator.Element>`
+
+The parser `anyToken` accepts any kind of token. It is for example used to implement 'eof'. Returns the accepted token.
+
+### `eof() -> Parser<()>`
+
+This parser only succeeds at the end of the input. This is not a primitive parser but it is defined using 'notFollowedBy'.
+
+### `notFollowedBy(_ p: Parser<a>) -> Parser<()>`
+
+`notFollowedBy(p)` only succeeds when parser `p` fails. This parser does not consume any input. This parser can be used to implement the 'longest match' rule. For example, when recognizing keywords (for example `let`), we want to make sure that a keyword is not followed by a legal identifier character, in which case the keyword is actually an identifier (for example `lets`). We can program this behaviour as follows:
+
+```swift
+func keywordLet () -> StringParser<String>.T {
+  return attempt(string("let") <<< notFollowedBy(alphaNum()))
+}
+```
+
+### `manyTill(_ p: Parser<a>, _ end: Parser<x>) -> Parser<[a]>`
+
+`manyTill(p, end)` applies parser `p` *zero* or more times until parser `end` succeeds. Returns the list of values returned by `p`. This parser can be used to scan comments:
+
+```swift
+func simpleComment () -> StringParser<String>.T {
+  return string("<!--") >>> manyTill(anyChar(), attempt(string("-->"))) >>- { cs in create(String(cs)) }
+}
+```
+
+Note the overlapping parsers `anyChar` and `string("-->")`, and therefore the use of the 'attempt' combinator.
 
 # Credits
 
