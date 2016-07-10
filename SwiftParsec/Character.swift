@@ -7,7 +7,9 @@
     string `s`. Returns the parsed character. See also
     'satisfy'.
 
-        let vowel = oneOf("aeiou")
+        func vowel () -> StringParser<Character>.T {
+          return oneOf("aeiou")
+        }
 */
 public func oneOf<c: Collection where c.SubSequence == c, c.Iterator.Element == Character> (_ s: String) -> Parser<Character, c>.T {
   return satisfy { c in s.contains(String(c)) }
@@ -15,10 +17,12 @@ public func oneOf<c: Collection where c.SubSequence == c, c.Iterator.Element == 
 
 /**
     As the dual of 'oneOf', `noneOf(s)` succeeds if the current
-    character is *not* in the supplied string of characters `s`. Returns the
+    character is *not* in the supplied string `s`. Returns the
     parsed character.
 
-        let consonant = noneOf("aeiou")
+        func consonant () -> StringParser<Character>.T {
+          return noneOf("aeiou")
+        }
 */
 public func noneOf<c: Collection where c.SubSequence == c, c.Iterator.Element == Character> (_ s: String) -> Parser<Character, c>.T {
   return satisfy { c in !s.contains(String(c)) }
@@ -32,7 +36,7 @@ public func spaces<c: Collection where c.SubSequence == c, c.Iterator.Element ==
 }
 
 /**
-    Parses a white space character (any character which satisfies 'isSpace')
+    Parses a white space character (any character which satisfies 'isSpace').
     Returns the parsed character.
 */
 public func space<c: Collection where c.SubSequence == c, c.Iterator.Element == Character> () -> Parser<Character, c>.T {
@@ -128,7 +132,9 @@ public func octDigit<c: Collection where c.SubSequence == c, c.Iterator.Element 
     `char(c)` parses a single character `c`. Returns the parsed
     character (i.e. `c`).
 
-    let semiColon = char(";")
+        func semiColon () -> StringParser<Character>.T {
+          return char(";")
+        }
 */
 public func char<c: Collection where c.SubSequence == c, c.Iterator.Element == Character> (_ c: Character) -> Parser<Character, c>.T {
   return satisfy { x in x == c } <?> String(c)
@@ -146,7 +152,9 @@ public func anyChar<c: Collection where c.SubSequence == c, c.Iterator.Element =
     supplied function `f` returns 'true'. Returns the character that is
     actually parsed.
 
-        let digit = satisfy(isDigit)
+        func digit () -> StringParser<Character>.T {
+          return satisfy(isDigit)
+        }
 */
 public func satisfy<c: Collection where c.SubSequence == c, c.Iterator.Element == Character> (_ f: (Character) -> Bool) -> Parser<Character, c>.T {
   func show (_ c: Character) -> String {
@@ -164,11 +172,13 @@ public func satisfy<c: Collection where c.SubSequence == c, c.Iterator.Element =
 }
 
 /**
-    `string(s)` parses a sequence of characters given by `s`. Returns
+    `string(s)` parses a string given by `s`. Returns
     the parsed string (i.e. `s`).
 
-        let divOrMod = string("div")
-                    <|> string("mod")
+        func divOrMod () -> StringParser<String>.T {
+          return string("div")
+            <|> string("mod")
+        }
 */
 public func string<c: Collection where c.SubSequence == c, c.Iterator.Element == Character> (_ s: String) -> Parser<String, c>.T {
   func show (_ cs: [Character]) -> String {

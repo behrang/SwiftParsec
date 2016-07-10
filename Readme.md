@@ -757,7 +757,130 @@ You can give it different files and test it, and also give it some bad JSON file
 
 # API
 
-Will be added here.
+To use SwiftParsec, it needs to be imported first:
+
+```swift
+import SwiftParsec
+```
+
+Then parsers and combinators from the library can be combined togeether to create more complicated parsers and parse the input stream you want.
+
+## Collection
+
+The input stream can be any `Collection` type. A useful `Collection` is `String.CharacterView` which is a `Collection` of `Character`s of the input `String`.
+
+But SwiftParsec can work with any `Collection`. You can for example tokenize the input stream first and create a collection of tokens and then use that as the input for parsers, although in this case tokens are not `Character`s anymore and Character parsers can't be used. An example is `Process.arguments` which is a `Collection` of `String`s provided as input arguments to the application.
+
+## Character
+
+Character parsers are basic parsers for parsing `Character` data when elements of input stream is of type `Character`.
+
+### `oneOf(_ s: String) -> Parser<Character>`
+
+Succeeds if the current character is in the supplied string `s`. Returns the parsed character. See also `satisfy`.
+
+```swift
+func vowel () -> StringParser<Character>.T {
+  return oneOf("aeiou")
+}
+```
+
+### `noneOf(_ s: String) -> Parser<Character>`
+
+As the dual of 'oneOf', `noneOf(s)` succeeds if the current character is *not* in the supplied string `s`. Returns the parsed character.
+
+```swift
+func consonant () -> StringParser<Character>.T {
+  return noneOf("aeiou")
+}
+```
+
+### `spaces() -> Parser<Character>`
+
+Skips *zero* or more white space characters. See also 'skipMany'.
+
+### `space() -> Parser<Character>`
+
+Parses a white space character (any character which satisfies 'isSpace'). Returns the parsed character.
+
+### `newline() -> Parser<Character>`
+
+Parses a newline character ('\n'). Returns a newline character.
+
+### `crlf() -> Parser<Character>`
+
+Parses a carriage return character ('\r') followed by a newline character ('\n'). Returns a newline character.
+
+### `endOfLine() -> Parser<Character>`
+
+Parses a CRLF (see 'crlf') or LF (see 'newline') end-of-line. Returns a newline character ('\n').
+
+### `tab() -> Parser<Character>`
+
+Parses a tab character ('\t'). Returns a tab character.
+
+### `upper() -> Parser<Character>`
+
+Parses an upper case letter (a character between 'A' and 'Z'). Returns the parsed character.
+
+### `lower() -> Parser<Character>`
+
+Parses a lower case character (a character between 'a' and 'z'). Returns the parsed character.
+
+### `alphaNum() -> Parser<Character>`
+
+Parses a letter or digit (a character between '0' and '9'). Returns the parsed character.
+
+### `letter() -> Parser<Character>`
+
+Parses a letter (an upper case or lower case character). Returns the parsed character.
+
+### `digit() -> Parser<Character>`
+
+Parses a digit. Returns the parsed character.
+
+### `hexDigit() -> Parser<Character>`
+
+Parses a hexadecimal digit (a digit or a letter between 'a' and 'f' or 'A' and 'F'). Returns the parsed character.
+
+### `octDigit() -> Parser<Character>`
+
+Parses an octal digit (a character between '0' and '7'). Returns the parsed character.
+
+### `char(_ c: Character) -> Parser<Character>`
+
+`char(c)` parses a single character `c`. Returns the parsed character (i.e. `c`).
+
+```swift
+func semiColon () -> StringParser<Character>.T {
+  return char(";")
+}
+```
+
+### `anyChar() -> Parser<Character>`
+
+This parser succeeds for any character. Returns the parsed character.
+
+### `satisfy(_ f: (Character) -> Bool) -> Parser<Character>`
+
+The parser `satisfy(f)` succeeds for any character for which the supplied function `f` returns 'true'. Returns the character that is actually parsed.
+
+```swift
+func digit () -> StringParser<Character>.T {
+  return satisfy(isDigit)
+}
+```
+
+### `string(_ s: String) -> Parser<String>`
+
+`string(s)` parses a string given by `s`. Returns the parsed string (i.e. `s`).
+
+```swift
+func divOrMod () -> StringParser<String>.T {
+  return string("div")
+    <|> string("mod")
+}
+```
 
 # Credits
 
