@@ -161,7 +161,7 @@ func showErrorMessage (_ msgs: [Message]) -> String {
     if !unExpect.isEmpty || sysUnExpect.isEmpty {
     } else {
       let firstMsg = sysUnExpect.first?.string
-      if let firstMsg = firstMsg where !firstMsg.isEmpty {
+      if let firstMsg = firstMsg, !firstMsg.isEmpty {
         showSysUnExpect = "unexpected \(firstMsg)"
       } else {
         showSysUnExpect = "unexpected end of input"

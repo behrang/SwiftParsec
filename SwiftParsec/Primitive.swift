@@ -394,7 +394,7 @@ public func tokens<c: Collection where c.Iterator.Element: Equatable, c.SubSeque
 */
 public func tokenPrim<a, c: Collection where c.SubSequence == c> (_ showToken: (c.Iterator.Element) -> String, _ nextPosition: (SourcePos, c.Iterator.Element, c) -> SourcePos, _ test: (c.Iterator.Element) -> a?) -> Parser<a, c>.T {
   return { state in
-    if let head = state.input.first, x = test(head) {
+    if let head = state.input.first, let x = test(head) {
       let tail = state.input.dropFirst()
       let newPos = nextPosition(state.pos, head, tail)
       let newState = State(tail, newPos)
