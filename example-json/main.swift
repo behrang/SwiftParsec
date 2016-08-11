@@ -1,4 +1,4 @@
-import SwiftParsec
+import Parsec
 
 enum Json {
   case null

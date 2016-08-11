@@ -1,4 +1,4 @@
-import SwiftParsec
+import Parsec
 
 func csv () -> StringParser<[[String]]>.T {
   return endBy(line(), endOfLine())

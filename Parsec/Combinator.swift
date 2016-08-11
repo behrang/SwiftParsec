@@ -8,7 +8,7 @@
     parser.
 */
 public func choice<a, c: Collection> (_ ps: [Parser<a, c>.T]) -> Parser<a, c>.T {
-  return ps.reversed().reduce(parserZero(), combine: parserPlus)
+  return ps.reversed().reduce(parserZero(), parserPlus)
 }
 
 /**

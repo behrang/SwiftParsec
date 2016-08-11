@@ -105,7 +105,7 @@ Each movie is on its own line and title and year of the movie are separated by a
 Here is a simple CSV parser:
 
 ```swift
-import SwiftParsec
+import Parsec
 
 func csv () -> StringParser<[[String]]>.T {
   return endBy(line(), char("\n"))
@@ -337,7 +337,7 @@ Let's fix these issues in the next example.
 To fix the problems of our simple CSV parser, we need to consider the case where double quotes are used around fields. Also we should consider double quote escapes. Here is our advanced CSV parser:
 
 ```swift
-import SwiftParsec
+import Parsec
 
 func csv () -> StringParser<[[String]]>.T {
   return endBy(line(), endOfLine())
@@ -760,7 +760,7 @@ You can give it different files and test it, and also give it some bad JSON file
 To use SwiftParsec, it needs to be imported first:
 
 ```swift
-import SwiftParsec
+import Parsec
 ```
 
 Then parsers and combinators from the library can be combined togeether to create more complicated parsers and parse the input stream you want.
