@@ -1,9 +1,7 @@
 /**
     `StringParser<a>` is an alias for `Parser<a, String.CharacterView>`.
 */
-public enum StringParser<a> {
-  public typealias T = Parser<a, String.CharacterView>.T
-}
+public typealias StringParser<a> = (State<String.CharacterView>) -> Consumed<a, String.CharacterView>
 
 /**
     `parse(p, file: filePath)` runs a string parser `p` on the
@@ -18,7 +16,7 @@ public enum StringParser<a> {
       }
     }
 */
-public func parse<a, c: Collection> (_ p: Parser<a, c>.T, contentsOfFile file: String) throws -> Either<ParseError, a> {
+public func parse<a, c: Collection> (_ p: Parser<a, c>, contentsOfFile file: String) throws -> Either<ParseError, a> {
   let contents = try String(contentsOfFile: file)
   return parse(p, file, contents.characters as! c)
 }

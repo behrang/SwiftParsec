@@ -1,34 +1,34 @@
 import Parsec
 
-func csv () -> StringParser<[[String]]>.T {
+func csv () -> StringParser<[[String]]> {
   return endBy(line(), endOfLine())
 }
 
-func line () -> StringParser<[String]>.T {
+func line () -> StringParser<[String]> {
   return sepBy(cell(), char(","))
 }
 
-func cell () -> StringParser<String>.T {
+func cell () -> StringParser<String> {
   return quotedCell() <|> simpleCell()
 }
 
-func simpleCell () -> StringParser<String>.T {
+func simpleCell () -> StringParser<String> {
   return many(noneOf(",\n")) >>- { cs in create(String(cs)) }
 }
 
-func quotedCell () -> StringParser<String>.T {
+func quotedCell () -> StringParser<String> {
   return between(char("\""), char("\""), quotedCellContent())
 }
 
-func quotedCellContent () -> StringParser<String>.T {
+func quotedCellContent () -> StringParser<String> {
   return many(quotedCellChar()) >>- { cs in create(String(cs)) }
 }
 
-func quotedCellChar () -> StringParser<Character>.T {
+func quotedCellChar () -> StringParser<Character> {
   return noneOf("\"") <|> escapedQuote()
 }
 
-func escapedQuote () -> StringParser<Character>.T {
+func escapedQuote () -> StringParser<Character> {
   return attempt(string("\"\"") <?> "escaped double quote") >>> create("\"")
 }
 

@@ -1,14 +1,14 @@
 import Parsec
 
-func csv () -> StringParser<[[String]]>.T {
+func csv () -> StringParser<[[String]]> {
   return endBy(line(), char("\n"))
 }
 
-func line () -> StringParser<[String]>.T {
+func line () -> StringParser<[String]> {
   return sepBy(cell(), char(","))
 }
 
-func cell () -> StringParser<String>.T {
+func cell () -> StringParser<String> {
   return many(noneOf(",\n")) >>- { chars in create(String(chars)) }
 }
 
