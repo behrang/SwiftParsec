@@ -116,7 +116,7 @@ func line () -> StringParser<[String]>.T {
 }
 
 func cell () -> StringParser<String>.T {
-  return many(noneOf(",\n")) >>- { chars in create(String(chars)) }
+  return many(noneOf(",\n"))
 }
 ```
 
@@ -352,7 +352,7 @@ func cell () -> StringParser<String>.T {
 }
 
 func simpleCell () -> StringParser<String>.T {
-  return many(noneOf(",\n")) >>- { cs in create(String(cs)) }
+  return many(noneOf(",\n"))
 }
 
 func quotedCell () -> StringParser<String>.T {
@@ -360,7 +360,7 @@ func quotedCell () -> StringParser<String>.T {
 }
 
 func quotedCellContent () -> StringParser<String>.T {
-  return many(quotedCellChar()) >>- { cs in create(String(cs)) }
+  return many(quotedCellChar())
 }
 
 func quotedCellChar () -> StringParser<Character>.T {
@@ -512,7 +512,7 @@ func str () -> StringParser<Json>.T {
 
 func quotedString () -> StringParser<String>.T {
   return between(quote(), quote(), many(quotedCharacter()))
-        >>- { cs in create(String(cs)) } <<< spaces() <?> "quoted string"
+        <<< spaces() <?> "quoted string"
 }
 
 func quote () -> StringParser<Character>.T {
@@ -579,7 +579,7 @@ func numberSign () -> StringParser<String>.T {
 }
 
 func numberFixed () -> StringParser<String>.T {
-  return string("0") <|> many1(digit()) >>- { create(String($0)) }
+  return string("0") <|> many1(digit())
 }
 
 func numberFraction () -> StringParser<String>.T {
@@ -928,6 +928,26 @@ func braces<a> (_ p: StringParser<a>.T) -> StringParser<a>.T {
 
 `skipMany1(p)` applies the parser `p` *one* or more times, skipping its result.
 
+### `many(_ p: Parser<a>) -> Parser<[a]>`
+
+`many(p)` applies the parser `p` *zero* or more times. Returns an array of the returned values of `p`.
+
+```swift
+func identifier<a, c: Collection> () -> Parser<[a], c>.T {
+  return letter() >>- { c in
+    many(alphaNum() <|> char("_")) >>- { cs in
+      var r = cs
+      r.prepend(c)
+      return create(r)
+    }
+  }
+}
+```
+
+### `many(_ p: Parser<Character>) -> Parser<String>`
+
+Like `many` but converts the result to a `String`.
+
 ### `many1(_ p: Parser<a>) -> Parser<[a]>`
 
 `many1(p)` applies the parser `p` *one* or more times. Returns an array of the returned values of `p`.
@@ -937,6 +957,10 @@ func word () -> StringParser<[Character]>.T {
   return many1(letter())
 }
 ```
+
+### `many1(_ p: Parser<Character>) -> Parser<String>`
+
+Like `many1` but converts the result to a `String`.
 
 ### `sepBy(_ p: Parser<a>, _ sep: Parser<x>) -> Parser<[a]>`
 

@@ -13,7 +13,7 @@ func cell () -> StringParser<String>.T {
 }
 
 func simpleCell () -> StringParser<String>.T {
-  return many(noneOf(",\n")) >>- { cs in create(String(cs)) }
+  return many(noneOf(",\n"))
 }
 
 func quotedCell () -> StringParser<String>.T {
@@ -21,7 +21,7 @@ func quotedCell () -> StringParser<String>.T {
 }
 
 func quotedCellContent () -> StringParser<String>.T {
-  return many(quotedCellChar()) >>- { cs in create(String(cs)) }
+  return many(quotedCellChar())
 }
 
 func quotedCellChar () -> StringParser<Character>.T {

@@ -429,8 +429,8 @@ public func tokenPrim<a, c: Collection> (_ showToken: @escaping (c.Iterator.Elem
 }
 
 /**
-    `many(p)` applies the parser `p` *zero* or more times. Returns a
-    list of the returned values of `p`.
+    `many(p)` applies the parser `p` *zero* or more times. Returns an
+    array of the returned values of `p`.
 
         func identifier<a, c: Collection> () -> Parser<[a], c>.T {
           return letter() >>- { c in

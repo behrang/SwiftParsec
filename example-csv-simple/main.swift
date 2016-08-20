@@ -9,7 +9,7 @@ func line () -> StringParser<[String]>.T {
 }
 
 func cell () -> StringParser<String>.T {
-  return many(noneOf(",\n")) >>- { chars in create(String(chars)) }
+  return many(noneOf(",\n"))
 }
 
 func main () {

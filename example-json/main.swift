@@ -29,7 +29,7 @@ func str () -> StringParser<Json>.T {
 
 func quotedString () -> StringParser<String>.T {
   return between(quote(), quote(), many(quotedCharacter()))
-        >>- { cs in create(String(cs)) } <<< spaces() <?> "quoted string"
+        <<< spaces() <?> "quoted string"
 }
 
 func quote () -> StringParser<Character>.T {
@@ -82,7 +82,7 @@ func numberSign () -> StringParser<String>.T {
 }
 
 func numberFixed () -> StringParser<String>.T {
-  return string("0") <|> many1(digit()) >>- { create(String($0)) }
+  return string("0") <|> many1(digit())
 }
 
 func numberFraction () -> StringParser<String>.T {
