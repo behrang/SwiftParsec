@@ -45,7 +45,7 @@ public struct ParseError: CustomStringConvertible {
   }
 
   public var description: String {
-    return String(pos) + ":\n" + showErrorMessage(sortedMessages)
+    return String(describing: pos) + ":\n" + showErrorMessage(sortedMessages)
   }
 }
 

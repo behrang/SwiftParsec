@@ -271,7 +271,7 @@ public func chainr1<a, c: Collection> (_ p: Parser<a, c>.T, _ op: Parser<(a, a) 
 public func anyToken<c: Collection> () -> Parser<c.Iterator.Element, c>.T
   where c.SubSequence == c
 {
-  return tokenPrim({ String($0) }, { pos, _, _ in pos }, { $0 })
+  return tokenPrim({ String(describing: $0) }, { pos, _, _ in pos }, { $0 })
 }
 
 /**
@@ -299,7 +299,7 @@ public func eof<c: Collection> () -> Parser<(), c>.T
 */
 public func notFollowedBy<a, c: Collection> (_ p: Parser<a, c>.T) -> Parser<(), c>.T {
   return attempt(
-    attempt(p) >>- { c in unexpected(String(c))}
+    attempt(p) >>- { c in unexpected(String(describing: c))}
     <|> create(())
   )
 }

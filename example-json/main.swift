@@ -39,10 +39,10 @@ func quote () -> StringParser<Character>.T {
 func quotedCharacter () -> StringParser<Character>.T {
   var chars = "\"\\"
   for i in 0x00...0x1f {
-    chars += String(UnicodeScalar(i))
+    chars += String(describing: UnicodeScalar(i))
   }
   for i in 0x7f...0x9f {
-    chars += String(UnicodeScalar(i))
+    chars += String(describing: UnicodeScalar(i))
   }
   return noneOf(chars)
       <|> attempt(string("\\\"")) >>> create("\"")
@@ -56,7 +56,7 @@ func quotedCharacter () -> StringParser<Character>.T {
       <|> attempt(string("\\u") >>> count(4, hexDigit()) >>- { hds in
             let code = String(hds)
             let i = Int(code, radix: 16)!
-            return create(Character(UnicodeScalar(i)))
+            return create(Character(UnicodeScalar(i)!))
           })
 }
 
