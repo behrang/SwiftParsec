@@ -39,10 +39,10 @@ func quote () -> StringParser<Character>.T {
 func quotedCharacter () -> StringParser<Character>.T {
   var chars = "\"\\"
   for i in 0x00...0x1f {
-    chars += String(describing: UnicodeScalar(i))
+    chars += String(describing: UnicodeScalar(i)!)
   }
   for i in 0x7f...0x9f {
-    chars += String(describing: UnicodeScalar(i))
+    chars += String(describing: UnicodeScalar(i)!)
   }
   return noneOf(chars)
       <|> attempt(string("\\\"")) >>> create("\"")
