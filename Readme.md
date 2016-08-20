@@ -132,10 +132,10 @@ With these three parsers, we can parse simple CSV files. To execute it, we need 
 
 ```swift
 func main () {
-  if Process.arguments.count != 2 {
-    print("Usage: \(Process.arguments[0]) csv_file")
+  if CommandLine.arguments.count != 2 {
+    print("Usage: \(CommandLine.arguments[0]) csv_file")
   } else {
-    let result = try! parse(csv(), contentsOfFile: Process.arguments[1])
+    let result = try! parse(csv(), contentsOfFile: CommandLine.arguments[1])
     switch result {
     case let .left(err): print(err)
     case let .right(x): format(x)
@@ -769,7 +769,7 @@ Then parsers and combinators from the library can be combined togeether to creat
 
 The input stream can be any `Collection` type. A useful `Collection` is `String.CharacterView` which is a `Collection` of `Character`s of the input `String`.
 
-But SwiftParsec can work with any `Collection`. You can for example tokenize the input stream first and create a collection of tokens and then use that as the input for parsers, although in this case tokens are not `Character`s anymore and Character parsers can't be used. An example is `Process.arguments` which is a `Collection` of `String`s provided as input arguments to the application.
+But SwiftParsec can work with any `Collection`. You can for example tokenize the input stream first and create a collection of tokens and then use that as the input for parsers, although in this case tokens are not `Character`s anymore and Character parsers can't be used. An example is `CommandLine.arguments` which is a `Collection` of `String`s provided as input arguments to the application.
 
 ## Character
 

@@ -160,10 +160,10 @@ func null () -> StringParser<Json>.T {
 }
 
 func main () {
-  if Process.arguments.count != 2 {
-    print("Usage: \(Process.arguments[0]) json_file")
+  if CommandLine.arguments.count != 2 {
+    print("Usage: \(CommandLine.arguments[0]) json_file")
   } else {
-    let result = try! parse(jsonFile(), contentsOfFile: Process.arguments[1])
+    let result = try! parse(jsonFile(), contentsOfFile: CommandLine.arguments[1])
     switch result {
     case let .left(err): print(err)
     case let .right(x): print(format(x))

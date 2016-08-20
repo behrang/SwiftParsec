@@ -33,10 +33,10 @@ func escapedQuote () -> StringParser<Character>.T {
 }
 
 func main () {
-  if Process.arguments.count != 2 {
-    print("Usage: \(Process.arguments[0]) csv_file")
+  if CommandLine.arguments.count != 2 {
+    print("Usage: \(CommandLine.arguments[0]) csv_file")
   } else {
-    let result = try! parse(csv(), contentsOfFile: Process.arguments[1])
+    let result = try! parse(csv(), contentsOfFile: CommandLine.arguments[1])
     switch result {
     case let .left(err): print(err)
     case let .right(x): format(x)
