@@ -73,17 +73,30 @@ public func create<a, c: Collection> (_ x: a) -> Parser<a, c>.T {
   return parserReturn(x)
 }
 
-infix operator >>- { associativity left precedence 107 }
+precedencegroup BindPrecedence {
+  associativity: left
+  higherThan: ChoicePrecedence
+}
+
+precedencegroup ChoicePrecedence {
+  associativity: right
+  higherThan: LabelPrecedence
+}
+
+precedencegroup LabelPrecedence {
+}
+
+infix operator >>- : BindPrecedence
 public func >>- <a, b, c: Collection> (p: Parser<a, c>.T, f: (a) -> Parser<b, c>.T) -> Parser<b, c>.T {
   return parserBind(p, f)
 }
 
-infix operator >>> { associativity left precedence 107 }
+infix operator >>> : BindPrecedence
 public func >>> <a, b, c: Collection> (p: Parser<a, c>.T, q: Parser<b, c>.T) -> Parser<b, c>.T {
   return p >>- { _ in q }
 }
 
-infix operator <<< { associativity left precedence 107 }
+infix operator <<< : BindPrecedence
 public func <<< <a, b, c: Collection> (p: Parser<a, c>.T, q: Parser<b, c>.T) -> Parser<a, c>.T {
   return p >>- { x in q >>> create(x) }
 }
@@ -190,7 +203,7 @@ public func parserPlus<a, c: Collection> (_ p: Parser<a, c>.T, _ q: Parser<a, c>
     to return an error message in terms of a higher level construct
     rather than returning all possible characters.
 */
-infix operator <?> { precedence 105 }
+infix operator <?> : LabelPrecedence
 public func <?> <a, c: Collection> (p: Parser<a, c>.T, msg: String) -> Parser<a, c>.T {
   return label(p, msg)
 }
@@ -232,7 +245,7 @@ func setExpectErrors (_ err: ParseError, _ msgs: [String]) -> ParseError {
     implementation of the parser combinators and the generation of good
     error messages.
 */
-infix operator <|> { associativity right precedence 106 }
+infix operator <|> : ChoicePrecedence
 public func <|> <a, c:Collection> (p: Parser<a, c>.T, q: Parser<a, c>.T) -> Parser<a, c>.T {
   return parserPlus(p, q)
 }
