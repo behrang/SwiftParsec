@@ -12,7 +12,7 @@ public enum Consumed<a, c: Collection> {
   case consumed(Lazy<Reply<a, c>>)
   case empty(Reply<a, c>)
 
-  func map<b> (_ f: (a) -> b) -> Consumed<b, c> {
+  func map<b> (_ f: @escaping (a) -> b) -> Consumed<b, c> {
     switch self {
     case let .consumed(reply): return .consumed(Lazy { reply.value.map(f) })
     case let .empty(reply): return .empty(reply.map(f))
@@ -52,7 +52,7 @@ public class Lazy<x> {
   let closure: () -> x
   var val: x?
 
-  init (_ c: () -> x) {
+  init (_ c: @escaping () -> x) {
     closure = c
   }
 
@@ -87,7 +87,7 @@ precedencegroup LabelPrecedence {
 }
 
 infix operator >>- : BindPrecedence
-public func >>- <a, b, c: Collection> (p: Parser<a, c>.T, f: (a) -> Parser<b, c>.T) -> Parser<b, c>.T {
+public func >>- <a, b, c: Collection> (p: Parser<a, c>.T, f: @escaping (a) -> Parser<b, c>.T) -> Parser<b, c>.T {
   return parserBind(p, f)
 }
 
@@ -124,7 +124,7 @@ public func parserReturn<a, c: Collection> (_ x: a) -> Parser<a, c>.T {
   return { state in .empty(.ok(x, state, unknownError(state))) }
 }
 
-public func parserBind<a, b, c: Collection> (_ p: Parser<a, c>.T, _ f: (a) -> Parser<b, c>.T) -> Parser<b, c>.T {
+public func parserBind<a, b, c: Collection> (_ p: Parser<a, c>.T, _ f: @escaping (a) -> Parser<b, c>.T) -> Parser<b, c>.T {
   return { state in
     switch p(state) {
 
@@ -340,7 +340,7 @@ public func lookAhead<a, c: Collection> (_ p: Parser<a, c>.T) -> Parser<a, c>.T 
           return token(showTok, posFromTok, testTok)
         }
 */
-public func token<a, c: Collection> (_ showToken: (c.Iterator.Element) -> String, _ tokenPosition: (c.Iterator.Element) -> SourcePos, _ test: (c.Iterator.Element) -> a?) -> Parser<a, c>.T
+public func token<a, c: Collection> (_ showToken: @escaping (c.Iterator.Element) -> String, _ tokenPosition: @escaping (c.Iterator.Element) -> SourcePos, _ test: @escaping (c.Iterator.Element) -> a?) -> Parser<a, c>.T
   where c.SubSequence == c
 {
   let nextPosition: (SourcePos, c.Iterator.Element, c) -> SourcePos = { _, current, rest in
@@ -353,7 +353,7 @@ public func token<a, c: Collection> (_ showToken: (c.Iterator.Element) -> String
   return tokenPrim(showToken, nextPosition, test)
 }
 
-public func tokens<c: Collection> (_ showTokens: ([c.Iterator.Element]) -> String, _ nextPosition: (SourcePos, [c.Iterator.Element]) -> SourcePos, _ tts: [c.Iterator.Element]) -> Parser<[c.Iterator.Element], c>.T
+public func tokens<c: Collection> (_ showTokens: @escaping ([c.Iterator.Element]) -> String, _ nextPosition: @escaping (SourcePos, [c.Iterator.Element]) -> SourcePos, _ tts: [c.Iterator.Element]) -> Parser<[c.Iterator.Element], c>.T
   where c.Iterator.Element: Equatable, c.SubSequence == c
 {
   if let tok = tts.first {
@@ -411,7 +411,7 @@ public func tokens<c: Collection> (_ showTokens: ([c.Iterator.Element]) -> Strin
           return tokenPrim(showChar, nextPos, testChar)
         }
 */
-public func tokenPrim<a, c: Collection> (_ showToken: (c.Iterator.Element) -> String, _ nextPosition: (SourcePos, c.Iterator.Element, c) -> SourcePos, _ test: (c.Iterator.Element) -> a?) -> Parser<a, c>.T
+public func tokenPrim<a, c: Collection> (_ showToken: @escaping (c.Iterator.Element) -> String, _ nextPosition: @escaping (SourcePos, c.Iterator.Element, c) -> SourcePos, _ test: @escaping (c.Iterator.Element) -> a?) -> Parser<a, c>.T
   where c.SubSequence == c
 {
   return { state in
@@ -464,7 +464,7 @@ public func skipMany<a, c: Collection> (_ p: Parser<a, c>.T) -> Parser<(), c>.T 
   return manyAccum({ _, _ in [] }, p) >>> create(())
 }
 
-public func manyAccum<a, c: Collection> (_ acc: (a, [a]) -> [a], _ p: Parser<a, c>.T) -> Parser<[a], c>.T {
+public func manyAccum<a, c: Collection> (_ acc: @escaping (a, [a]) -> [a], _ p: Parser<a, c>.T) -> Parser<[a], c>.T {
   let msg = "Parsec many: combinator 'many' is applied to a parser that accepts an empty string."
   func walk (_ xs: [a], _ x: a, _ state: State<c>, _ err: ParseError) -> Consumed<[a], c> {
     switch p(state) {
@@ -607,7 +607,7 @@ public func setParserState<c: Collection> (_ state: State<c>) -> Parser<State<c>
 /**
     `updateParserState(f)` applies function `f` to the parser state.
 */
-public func updateParserState<c: Collection> (_ f: (State<c>) -> State<c>) -> Parser<State<c>, c>.T {
+public func updateParserState<c: Collection> (_ f: @escaping (State<c>) -> State<c>) -> Parser<State<c>, c>.T {
   return { state in
     let newState = f(state)
     return .empty(.ok(newState, newState, unknownError(newState)))

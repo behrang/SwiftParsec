@@ -190,7 +190,7 @@ public func anyChar<c: Collection> () -> Parser<Character, c>.T
           return satisfy(isDigit)
         }
 */
-public func satisfy<c: Collection> (_ f: (Character) -> Bool) -> Parser<Character, c>.T
+public func satisfy<c: Collection> (_ f: @escaping (Character) -> Bool) -> Parser<Character, c>.T
   where c.SubSequence == c, c.Iterator.Element == Character
 {
   func show (_ c: Character) -> String {
