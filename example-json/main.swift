@@ -130,14 +130,7 @@ func pair () -> StringParser<(String, Json)>.T {
 }
 
 func array () -> StringParser<Json>.T {
-  // the next line crashes the compiler with "Segmentation fault: 11"
-  // return between(leftBracket(), rightBracket(), sepBy(value(), comma()))
-  //     >>- { js in create(.array(js)) }
-  // as a result, we can't have an array within an array for now
-  func element () -> StringParser<Json>.T {
-    return null() <|> bool() <|> number() <|> str() <|> object()
-  }
-  return between(leftBracket(), rightBracket(), sepBy(element(), comma()))
+  return between(leftBracket(), rightBracket(), sepBy(value(), comma()))
       >>- { js in create(.array(js)) }
       <?> "array"
 }
