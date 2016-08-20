@@ -11,7 +11,9 @@
           return oneOf("aeiou")
         }
 */
-public func oneOf<c: Collection where c.SubSequence == c, c.Iterator.Element == Character> (_ s: String) -> Parser<Character, c>.T {
+public func oneOf<c: Collection> (_ s: String) -> Parser<Character, c>.T
+  where c.SubSequence == c, c.Iterator.Element == Character
+{
   return satisfy { c in s.contains(String(c)) }
 }
 
@@ -24,14 +26,18 @@ public func oneOf<c: Collection where c.SubSequence == c, c.Iterator.Element == 
           return noneOf("aeiou")
         }
 */
-public func noneOf<c: Collection where c.SubSequence == c, c.Iterator.Element == Character> (_ s: String) -> Parser<Character, c>.T {
+public func noneOf<c: Collection> (_ s: String) -> Parser<Character, c>.T
+  where c.SubSequence == c, c.Iterator.Element == Character
+{
   return satisfy { c in !s.contains(String(c)) }
 }
 
 /**
     Skips *zero* or more white space characters. See also 'skipMany'.
 */
-public func spaces<c: Collection where c.SubSequence == c, c.Iterator.Element == Character> () -> Parser<(), c>.T {
+public func spaces<c: Collection> () -> Parser<(), c>.T
+  where c.SubSequence == c, c.Iterator.Element == Character
+{
   return skipMany(space()) <?> "white space"
 }
 
@@ -39,14 +45,18 @@ public func spaces<c: Collection where c.SubSequence == c, c.Iterator.Element ==
     Parses a white space character (any character which satisfies 'isSpace').
     Returns the parsed character.
 */
-public func space<c: Collection where c.SubSequence == c, c.Iterator.Element == Character> () -> Parser<Character, c>.T {
+public func space<c: Collection> () -> Parser<Character, c>.T
+  where c.SubSequence == c, c.Iterator.Element == Character
+{
   return satisfy(isSpace) <?> "space"
 }
 
 /**
     Parses a newline character ('\n'). Returns a newline character.
 */
-public func newline<c: Collection where c.SubSequence == c, c.Iterator.Element == Character> () -> Parser<Character, c>.T {
+public func newline<c: Collection> () -> Parser<Character, c>.T
+  where c.SubSequence == c, c.Iterator.Element == Character
+{
   return char("\n") <?> "lf new-line"
 }
 
@@ -54,7 +64,9 @@ public func newline<c: Collection where c.SubSequence == c, c.Iterator.Element =
     Parses a carriage return character ('\r') followed by a newline character ('\n').
     Returns a newline character.
 */
-public func crlf<c: Collection where c.SubSequence == c, c.Iterator.Element == Character> () -> Parser<Character, c>.T {
+public func crlf<c: Collection> () -> Parser<Character, c>.T
+  where c.SubSequence == c, c.Iterator.Element == Character
+{
   return char("\r") >>> char("\n") <?> "crlf new-line"
 }
 
@@ -62,14 +74,18 @@ public func crlf<c: Collection where c.SubSequence == c, c.Iterator.Element == C
     Parses a CRLF (see 'crlf') or LF (see 'newline') end-of-line.
     Returns a newline character ('\n').
 */
-public func endOfLine<c: Collection where c.SubSequence == c, c.Iterator.Element == Character> () -> Parser<Character, c>.T {
+public func endOfLine<c: Collection> () -> Parser<Character, c>.T
+  where c.SubSequence == c, c.Iterator.Element == Character
+{
   return newline() <|> crlf() <?> "new-line"
 }
 
 /**
     Parses a tab character ('\t'). Returns a tab character.
 */
-public func tab<c: Collection where c.SubSequence == c, c.Iterator.Element == Character> () -> Parser<Character, c>.T {
+public func tab<c: Collection> () -> Parser<Character, c>.T
+  where c.SubSequence == c, c.Iterator.Element == Character
+{
   return char("\t") <?> "tab"
 }
 
@@ -77,7 +93,9 @@ public func tab<c: Collection where c.SubSequence == c, c.Iterator.Element == Ch
     Parses an upper case letter (a character between 'A' and 'Z').
     Returns the parsed character.
 */
-public func upper<c: Collection where c.SubSequence == c, c.Iterator.Element == Character> () -> Parser<Character, c>.T {
+public func upper<c: Collection> () -> Parser<Character, c>.T
+  where c.SubSequence == c, c.Iterator.Element == Character
+{
   return satisfy(isUpper) <?> "uppercase letter"
 }
 
@@ -85,7 +103,9 @@ public func upper<c: Collection where c.SubSequence == c, c.Iterator.Element == 
     Parses a lower case character (a character between 'a' and 'z').
     Returns the parsed character.
 */
-public func lower<c: Collection where c.SubSequence == c, c.Iterator.Element == Character> () -> Parser<Character, c>.T {
+public func lower<c: Collection> () -> Parser<Character, c>.T
+  where c.SubSequence == c, c.Iterator.Element == Character
+{
   return satisfy(isLower) <?> "lowercase letter"
 }
 
@@ -93,7 +113,9 @@ public func lower<c: Collection where c.SubSequence == c, c.Iterator.Element == 
     Parses a letter or digit (a character between '0' and '9').
     Returns the parsed character.
 */
-public func alphaNum<c: Collection where c.SubSequence == c, c.Iterator.Element == Character> () -> Parser<Character, c>.T {
+public func alphaNum<c: Collection> () -> Parser<Character, c>.T
+  where c.SubSequence == c, c.Iterator.Element == Character
+{
   return satisfy(isAlphaNum) <?> "letter or digit"
 }
 
@@ -101,14 +123,18 @@ public func alphaNum<c: Collection where c.SubSequence == c, c.Iterator.Element 
     Parses a letter (an upper case or lower case character). Returns the
     parsed character.
 */
-public func letter<c: Collection where c.SubSequence == c, c.Iterator.Element == Character> () -> Parser<Character, c>.T {
+public func letter<c: Collection> () -> Parser<Character, c>.T
+  where c.SubSequence == c, c.Iterator.Element == Character
+{
   return satisfy(isLetter) <?> "letter"
 }
 
 /**
     Parses a digit. Returns the parsed character.
 */
-public func digit<c: Collection where c.SubSequence == c, c.Iterator.Element == Character> () -> Parser<Character, c>.T {
+public func digit<c: Collection> () -> Parser<Character, c>.T
+  where c.SubSequence == c, c.Iterator.Element == Character
+{
   return satisfy(isDigit) <?> "digit"
 }
 
@@ -116,7 +142,9 @@ public func digit<c: Collection where c.SubSequence == c, c.Iterator.Element == 
     Parses a hexadecimal digit (a digit or a letter between 'a' and
     'f' or 'A' and 'F'). Returns the parsed character.
 */
-public func hexDigit<c: Collection where c.SubSequence == c, c.Iterator.Element == Character> () -> Parser<Character, c>.T {
+public func hexDigit<c: Collection> () -> Parser<Character, c>.T
+  where c.SubSequence == c, c.Iterator.Element == Character
+{
   return satisfy(isHexDigit) <?> "hexadecimal digit"
 }
 
@@ -124,7 +152,9 @@ public func hexDigit<c: Collection where c.SubSequence == c, c.Iterator.Element 
     Parses an octal digit (a character between '0' and '7'). Returns
     the parsed character.
 */
-public func octDigit<c: Collection where c.SubSequence == c, c.Iterator.Element == Character> () -> Parser<Character, c>.T {
+public func octDigit<c: Collection> () -> Parser<Character, c>.T
+  where c.SubSequence == c, c.Iterator.Element == Character
+{
   return satisfy(isOctDigit) <?> "octal digit"
 }
 
@@ -136,14 +166,18 @@ public func octDigit<c: Collection where c.SubSequence == c, c.Iterator.Element 
           return char(";")
         }
 */
-public func char<c: Collection where c.SubSequence == c, c.Iterator.Element == Character> (_ c: Character) -> Parser<Character, c>.T {
+public func char<c: Collection> (_ c: Character) -> Parser<Character, c>.T
+  where c.SubSequence == c, c.Iterator.Element == Character
+{
   return satisfy { x in x == c } <?> String(c)
 }
 
 /**
     This parser succeeds for any character. Returns the parsed character.
 */
-public func anyChar<c: Collection where c.SubSequence == c, c.Iterator.Element == Character> () -> Parser<Character, c>.T {
+public func anyChar<c: Collection> () -> Parser<Character, c>.T
+  where c.SubSequence == c, c.Iterator.Element == Character
+{
   return satisfy { _ in true }
 }
 
@@ -156,7 +190,9 @@ public func anyChar<c: Collection where c.SubSequence == c, c.Iterator.Element =
           return satisfy(isDigit)
         }
 */
-public func satisfy<c: Collection where c.SubSequence == c, c.Iterator.Element == Character> (_ f: (Character) -> Bool) -> Parser<Character, c>.T {
+public func satisfy<c: Collection> (_ f: (Character) -> Bool) -> Parser<Character, c>.T
+  where c.SubSequence == c, c.Iterator.Element == Character
+{
   func show (_ c: Character) -> String {
     return String(c)
   }
@@ -180,7 +216,9 @@ public func satisfy<c: Collection where c.SubSequence == c, c.Iterator.Element =
             <|> string("mod")
         }
 */
-public func string<c: Collection where c.SubSequence == c, c.Iterator.Element == Character> (_ s: String) -> Parser<String, c>.T {
+public func string<c: Collection> (_ s: String) -> Parser<String, c>.T
+  where c.SubSequence == c, c.Iterator.Element == Character
+{
   func show (_ cs: [Character]) -> String {
     return String(reflecting: String(cs))
   }

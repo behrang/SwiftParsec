@@ -268,7 +268,9 @@ public func chainr1<a, c: Collection> (_ p: Parser<a, c>.T, _ op: Parser<(a, a) 
     The parser `anyToken` accepts any kind of token. It is for example
     used to implement 'eof'. Returns the accepted token.
 */
-public func anyToken<c: Collection where c.SubSequence == c> () -> Parser<c.Iterator.Element, c>.T {
+public func anyToken<c: Collection> () -> Parser<c.Iterator.Element, c>.T
+  where c.SubSequence == c
+{
   return tokenPrim({ String($0) }, { pos, _, _ in pos }, { $0 })
 }
 
@@ -276,7 +278,9 @@ public func anyToken<c: Collection where c.SubSequence == c> () -> Parser<c.Iter
     This parser only succeeds at the end of the input. This is not a
     primitive parser but it is defined using 'notFollowedBy'.
 */
-public func eof<c: Collection where c.SubSequence == c> () -> Parser<(), c>.T {
+public func eof<c: Collection> () -> Parser<(), c>.T
+  where c.SubSequence == c
+{
   return notFollowedBy(anyToken()) <?> "end of input"
 }
 

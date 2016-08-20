@@ -327,7 +327,9 @@ public func lookAhead<a, c: Collection> (_ p: Parser<a, c>.T) -> Parser<a, c>.T 
           return token(showTok, posFromTok, testTok)
         }
 */
-public func token<a, c: Collection where c.SubSequence == c> (_ showToken: (c.Iterator.Element) -> String, _ tokenPosition: (c.Iterator.Element) -> SourcePos, _ test: (c.Iterator.Element) -> a?) -> Parser<a, c>.T {
+public func token<a, c: Collection> (_ showToken: (c.Iterator.Element) -> String, _ tokenPosition: (c.Iterator.Element) -> SourcePos, _ test: (c.Iterator.Element) -> a?) -> Parser<a, c>.T
+  where c.SubSequence == c
+{
   let nextPosition: (SourcePos, c.Iterator.Element, c) -> SourcePos = { _, current, rest in
     if let next = rest.first {
       return tokenPosition(next)
@@ -338,7 +340,9 @@ public func token<a, c: Collection where c.SubSequence == c> (_ showToken: (c.It
   return tokenPrim(showToken, nextPosition, test)
 }
 
-public func tokens<c: Collection where c.Iterator.Element: Equatable, c.SubSequence == c> (_ showTokens: ([c.Iterator.Element]) -> String, _ nextPosition: (SourcePos, [c.Iterator.Element]) -> SourcePos, _ tts: [c.Iterator.Element]) -> Parser<[c.Iterator.Element], c>.T {
+public func tokens<c: Collection> (_ showTokens: ([c.Iterator.Element]) -> String, _ nextPosition: (SourcePos, [c.Iterator.Element]) -> SourcePos, _ tts: [c.Iterator.Element]) -> Parser<[c.Iterator.Element], c>.T
+  where c.Iterator.Element: Equatable, c.SubSequence == c
+{
   if let tok = tts.first {
     let toks = tts.dropFirst()
     return { state in
@@ -385,14 +389,18 @@ public func tokens<c: Collection where c.Iterator.Element: Equatable, c.SubSeque
     This is the most primitive combinator for accepting tokens. For
     example, the `char` parser could be implemented as:
 
-        func char<Character, c: Collection where c.Iterator.Element == Character> (c: Character) -> Parser<Character, c>.T {
+        func char<Character, c: Collection> (c: Character) -> Parser<Character, c>.T
+          where c.Iterator.Element == Character
+        {
           let showChar = { x: Character in "\"\(x)\"" }
           let testChar = { x: Character in if x == c { return x } else { return nil } }
           let nextPos = { pos: SourcePos, x: Character, xs: c in updatePos(pos, x) }
           return tokenPrim(showChar, nextPos, testChar)
         }
 */
-public func tokenPrim<a, c: Collection where c.SubSequence == c> (_ showToken: (c.Iterator.Element) -> String, _ nextPosition: (SourcePos, c.Iterator.Element, c) -> SourcePos, _ test: (c.Iterator.Element) -> a?) -> Parser<a, c>.T {
+public func tokenPrim<a, c: Collection> (_ showToken: (c.Iterator.Element) -> String, _ nextPosition: (SourcePos, c.Iterator.Element, c) -> SourcePos, _ test: (c.Iterator.Element) -> a?) -> Parser<a, c>.T
+  where c.SubSequence == c
+{
   return { state in
     if let head = state.input.first, let x = test(head) {
       let tail = state.input.dropFirst()
