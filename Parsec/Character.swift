@@ -219,7 +219,7 @@ public func string<c: Collection> (_ s: String) -> ParserClosure<String, c>
   where c.SubSequence == c, c.Iterator.Element == Character
 {
   func show (_ cs: [Character]) -> String {
-    return String(reflecting: String(cs))
+    return String(cs)
   }
   func next (_ pos: SourcePos, _ cs: [Character]) -> SourcePos {
     var newPos = pos
