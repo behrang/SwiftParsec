@@ -49,11 +49,11 @@ public struct ParseError: CustomStringConvertible {
   }
 }
 
-func unknownError<c: Collection> (_ state: State<c>) -> ParseError {
+func unknownError<c: Collection, u> (_ state: State<c, u>) -> ParseError {
   return ParseError(state.pos)
 }
 
-func sysUnExpectError<a, c: Collection> (_ msg: String, _ pos: SourcePos) -> Reply<a, c> {
+func sysUnExpectError<a, c: Collection, u> (_ msg: String, _ pos: SourcePos) -> Reply<a, c, u> {
   return .error(ParseError(pos, .sysUnExpect(msg)))
 }
 

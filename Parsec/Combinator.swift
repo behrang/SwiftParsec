@@ -7,7 +7,7 @@
     until one of them succeeds. Returns the value of the succeeding
     parser.
 */
-public func choice<a, c: Collection> (_ ps: [ParserClosure<a, c>]) -> ParserClosure<a, c> {
+public func choice<a, c: Collection, u> (_ ps: [UserParserClosure<a, c, u>]) -> UserParserClosure<a, c, u> {
   return ps.reversed().reduce(parserZero, parserPlus)
 }
 
@@ -26,7 +26,7 @@ public func choice<a, c: Collection> (_ ps: [ParserClosure<a, c>]) -> ParserClos
           })()
         }
 */
-public func option<a, c: Collection> (_ x: a, _ p: ParserClosure<a, c>) -> ParserClosure<a, c> {
+public func option<a, c: Collection, u> (_ x: a, _ p: UserParserClosure<a, c, u>) -> UserParserClosure<a, c, u> {
   return p <|> create(x)
 }
 
@@ -35,7 +35,7 @@ public func option<a, c: Collection> (_ x: a, _ p: ParserClosure<a, c>) -> Parse
     consuming input, it returns '.none', otherwise it returns
     '.some' the value returned by `p`.
 */
-public func optionMaybe<a, c: Collection> (_ p: ParserClosure<a, c>) -> ParserClosure<a?, c> {
+public func optionMaybe<a, c: Collection, u> (_ p: UserParserClosure<a, c, u>) -> UserParserClosure<a?, c, u> {
   return p >>- { x in create(x) } <|> create(nil)
 }
 
@@ -44,7 +44,7 @@ public func optionMaybe<a, c: Collection> (_ p: ParserClosure<a, c>) -> ParserCl
     It only fails if `p` fails after consuming input. It discards the result
     of `p`.
 */
-public func optional<a, c: Collection> (_ p: ParserClosure<a, c>) -> ParserClosure<(), c> {
+public func optional<a, c: Collection, u> (_ p: UserParserClosure<a, c, u>) -> UserParserClosure<(), c, u> {
   return p >>> create(()) <|> create(())
 }
 
@@ -56,7 +56,7 @@ public func optional<a, c: Collection> (_ p: ParserClosure<a, c>) -> ParserClosu
           return between(char("{"), char("}"), p)
         }
 */
-public func between<a, c: Collection, x, y> (_ open: ParserClosure<x, c>, _ close: ParserClosure<y, c>, _ p: ParserClosure<a, c>) -> ParserClosure<a, c> {
+public func between<a, c: Collection, u, x, y> (_ open: UserParserClosure<x, c, u>, _ close: UserParserClosure<y, c, u>, _ p: UserParserClosure<a, c, u>) -> UserParserClosure<a, c, u> {
   return open >>> p <<< close
 }
 
@@ -64,7 +64,7 @@ public func between<a, c: Collection, x, y> (_ open: ParserClosure<x, c>, _ clos
     `skipMany1(p)` applies the parser `p` *one* or more times, skipping
     its result.
 */
-public func skipMany1<a, c: Collection> (_ p: ParserClosure<a, c>) -> ParserClosure<(), c> {
+public func skipMany1<a, c: Collection, u> (_ p: UserParserClosure<a, c, u>) -> UserParserClosure<(), c, u> {
   return p >>> skipMany(p)
 }
 
@@ -76,7 +76,7 @@ public func skipMany1<a, c: Collection> (_ p: ParserClosure<a, c>) -> ParserClos
           return many1(letter)()
         }
 */
-public func many1<a, c: Collection> (_ p: ParserClosure<a, c>) -> ParserClosure<[a], c> {
+public func many1<a, c: Collection, u> (_ p: UserParserClosure<a, c, u>) -> UserParserClosure<[a], c, u> {
   return p >>- { x in
     many(p) >>- { xs in
       var r = [x]
@@ -94,7 +94,7 @@ public func many1<a, c: Collection> (_ p: ParserClosure<a, c>) -> ParserClosure<
           return sepBy(p, char(","))
         }
 */
-public func sepBy<a, c: Collection, x> (_ p: ParserClosure<a, c>, _ sep: ParserClosure<x, c>) -> ParserClosure<[a], c> {
+public func sepBy<a, c: Collection, u, x> (_ p: UserParserClosure<a, c, u>, _ sep: UserParserClosure<x, c, u>) -> UserParserClosure<[a], c, u> {
   return sepBy1(p, sep) <|> create([])
 }
 
@@ -102,7 +102,7 @@ public func sepBy<a, c: Collection, x> (_ p: ParserClosure<a, c>, _ sep: ParserC
     `sepBy1(p, sep)` parses *one* or more occurrences of `p`, separated
     by `sep`. Returns a list of values returned by `p`.
 */
-public func sepBy1<a, c: Collection, x> (_ p: ParserClosure<a, c>, _ sep: ParserClosure<x, c>) -> ParserClosure<[a], c> {
+public func sepBy1<a, c: Collection, u, x> (_ p: UserParserClosure<a, c, u>, _ sep: UserParserClosure<x, c, u>) -> UserParserClosure<[a], c, u> {
   return p >>- { x in
     many(sep >>> p) >>- { xs in
       var r = [x]
@@ -117,7 +117,7 @@ public func sepBy1<a, c: Collection, x> (_ p: ParserClosure<a, c>, _ sep: Parser
     separated and optionally ended by `sep`. Returns a list of values
     returned by `p`.
 */
-public func sepEndBy1<a, c: Collection, x> (_ p: ParserClosure<a, c>, _ sep: ParserClosure<x, c>) -> ParserClosure<[a], c> {
+public func sepEndBy1<a, c: Collection, u, x> (_ p: UserParserClosure<a, c, u>, _ sep: UserParserClosure<x, c, u>) -> UserParserClosure<[a], c, u> {
   return p >>- { x in
     sep >>> sepEndBy(p, sep) >>- { xs in
       var r = [x]
@@ -132,7 +132,7 @@ public func sepEndBy1<a, c: Collection, x> (_ p: ParserClosure<a, c>, _ sep: Par
     separated and optionally ended by `sep`. Returns a list
     of values returned by `p`.
 */
-public func sepEndBy<a, c: Collection, x> (_ p: ParserClosure<a, c>, _ sep: ParserClosure<x, c>) -> ParserClosure<[a], c> {
+public func sepEndBy<a, c: Collection, u, x> (_ p: UserParserClosure<a, c, u>, _ sep: UserParserClosure<x, c, u>) -> UserParserClosure<[a], c, u> {
   return sepEndBy1(p, sep) <|> create([])
 }
 
@@ -140,7 +140,7 @@ public func sepEndBy<a, c: Collection, x> (_ p: ParserClosure<a, c>, _ sep: Pars
     `endBy1(p, sep)` parses *one* or more occurrences of `p`, separated
     and ended by `sep`. Returns a list of values returned by `p`.
 */
-public func endBy1<a, c: Collection, x> (_ p: ParserClosure<a, c>, _ sep: ParserClosure<x, c>) -> ParserClosure<[a], c> {
+public func endBy1<a, c: Collection, u, x> (_ p: UserParserClosure<a, c, u>, _ sep: UserParserClosure<x, c, u>) -> UserParserClosure<[a], c, u> {
   return many1(p >>- { x in sep >>> create(x) })
 }
 
@@ -148,7 +148,7 @@ public func endBy1<a, c: Collection, x> (_ p: ParserClosure<a, c>, _ sep: Parser
     `endBy(p, sep)` parses *zero* or more occurrences of `p`, separated
     and ended by `sep`. Returns a list of values returned by `p`.
 */
-public func endBy<a, c: Collection, x> (_ p: ParserClosure<a, c>, _ sep: ParserClosure<x, c>) -> ParserClosure<[a], c> {
+public func endBy<a, c: Collection, u, x> (_ p: UserParserClosure<a, c, u>, _ sep: UserParserClosure<x, c, u>) -> UserParserClosure<[a], c, u> {
   return many(p >>- { x in sep >>> create(x) })
 }
 
@@ -157,7 +157,7 @@ public func endBy<a, c: Collection, x> (_ p: ParserClosure<a, c>, _ sep: ParserC
     equal to zero, the parser equals to `create([])`. Returns a list of
     `n` values returned by `p`.
 */
-public func count<a, c: Collection> (_ n: Int, _ p: ParserClosure<a, c>) -> ParserClosure<[a], c> {
+public func count<a, c: Collection, u> (_ n: Int, _ p: UserParserClosure<a, c, u>) -> UserParserClosure<[a], c, u> {
   if n <= 0 {
     return create([])
   } else {
@@ -165,7 +165,7 @@ public func count<a, c: Collection> (_ n: Int, _ p: ParserClosure<a, c>) -> Pars
   }
 }
 
-func sequence<a, c: Collection> (_ ps: ArraySlice<ParserClosure<a, c>>) -> ParserClosure<[a], c> {
+func sequence<a, c: Collection, u> (_ ps: ArraySlice<UserParserClosure<a, c, u>>) -> UserParserClosure<[a], c, u> {
   if let p = ps.first {
     return p >>- { x in
       sequence(ps.dropFirst()) >>- { xs in
@@ -186,7 +186,7 @@ func sequence<a, c: Collection> (_ ps: ArraySlice<ParserClosure<a, c>>) -> Parse
     by `p`. If there are no occurrences of `p`, the value `x` is
     returned.
 */
-public func chainr<a, c: Collection> (_ p: ParserClosure<a, c>, _ op: ParserClosure<(a, a) -> a, c>, _ x: a) -> ParserClosure<a, c> {
+public func chainr<a, c: Collection, u> (_ p: UserParserClosure<a, c, u>, _ op: UserParserClosure<(a, a) -> a, c, u>, _ x: a) -> UserParserClosure<a, c, u> {
   return chainr1(p, op) <|> create(x)
 }
 
@@ -197,7 +197,7 @@ public func chainr<a, c: Collection> (_ p: ParserClosure<a, c>, _ op: ParserClos
     by `p`. If there are no occurrences of `p`, the value `x` is
     returned.
 */
-public func chainl<a, c: Collection> (_ p: ParserClosure<a, c>, _ op: ParserClosure<(a, a) -> a, c>, _ x: a) -> ParserClosure<a, c> {
+public func chainl<a, c: Collection, u> (_ p: UserParserClosure<a, c, u>, _ op: UserParserClosure<(a, a) -> a, c, u>, _ x: a) -> UserParserClosure<a, c, u> {
   return chainl1(p, op) <|> create(x)
 }
 
@@ -227,8 +227,8 @@ public func chainl<a, c: Collection> (_ p: ParserClosure<a, c>, _ op: ParserClos
               <|> char("-") >>> create(-))()
         }
 */
-public func chainl1<a, c: Collection> (_ p: ParserClosure<a, c>, _ op: ParserClosure<(a, a) -> a, c>) -> ParserClosure<a, c> {
-  func rest (_ x: a) -> ParserClosure<a, c> {
+public func chainl1<a, c: Collection, u> (_ p: UserParserClosure<a, c, u>, _ op: UserParserClosure<(a, a) -> a, c, u>) -> UserParserClosure<a, c, u> {
+  func rest (_ x: a) -> UserParserClosure<a, c, u> {
     return op >>- { f in
       p >>- { y in
         rest(f(x, y))
@@ -244,11 +244,11 @@ public func chainl1<a, c: Collection> (_ p: ParserClosure<a, c>, _ op: ParserClo
     application of all functions returned by `op` to the values returned
     by `p`.
 */
-public func chainr1<a, c: Collection> (_ p: ParserClosure<a, c>, _ op: ParserClosure<(a, a) -> a, c>) -> ParserClosure<a, c> {
-  func scan () -> Parser<a, c> {
+public func chainr1<a, c: Collection, u> (_ p: UserParserClosure<a, c, u>, _ op: UserParserClosure<(a, a) -> a, c, u>) -> UserParserClosure<a, c, u> {
+  func scan () -> UserParser<a, c, u> {
     return (p >>- rest)()
   }
-  func rest (_ x: a) -> ParserClosure<a, c> {
+  func rest (_ x: a) -> UserParserClosure<a, c, u> {
     return op >>- { f in
       scan >>- { y in
         create(f(x, y))
@@ -266,7 +266,7 @@ public func chainr1<a, c: Collection> (_ p: ParserClosure<a, c>, _ op: ParserClo
     The parser `anyToken` accepts any kind of token. It is for example
     used to implement 'eof'. Returns the accepted token.
 */
-public func anyToken<c: Collection> () -> Parser<c.Iterator.Element, c>
+public func anyToken<c: Collection, u> () -> UserParser<c.Iterator.Element, c, u>
   where c.SubSequence == c
 {
   return (tokenPrim({ String(describing: $0) }, { pos, _, _ in pos }, { $0 }))()
@@ -276,7 +276,7 @@ public func anyToken<c: Collection> () -> Parser<c.Iterator.Element, c>
     This parser only succeeds at the end of the input. This is not a
     primitive parser but it is defined using 'notFollowedBy'.
 */
-public func eof<c: Collection> () -> Parser<(), c>
+public func eof<c: Collection, u> () -> UserParser<(), c, u>
   where c.SubSequence == c
 {
   return (notFollowedBy(anyToken) <?> "end of input")()
@@ -295,7 +295,7 @@ public func eof<c: Collection> () -> Parser<(), c>
           return attempt(string("let") <<< notFollowedBy(alphaNum))()
         }
 */
-public func notFollowedBy<a, c: Collection> (_ p: ParserClosure<a, c>) -> ParserClosure<(), c> {
+public func notFollowedBy<a, c: Collection, u> (_ p: UserParserClosure<a, c, u>) -> UserParserClosure<(), c, u> {
   return attempt(
     attempt(p) >>- { c in unexpected(String(describing: c)) }
     <|> create(())
@@ -314,8 +314,8 @@ public func notFollowedBy<a, c: Collection> (_ p: ParserClosure<a, c>) -> Parser
     Note the overlapping parsers `anyChar` and `string("-->")`, and
     therefore the use of the 'attempt' combinator.
 */
-public func manyTill<a, c: Collection, x> (_ p: ParserClosure<a, c>, _ end: ParserClosure<x, c>) -> ParserClosure<[a], c> {
-  func scan () -> Parser<[a], c> {
+public func manyTill<a, c: Collection, u, x> (_ p: UserParserClosure<a, c, u>, _ end: UserParserClosure<x, c, u>) -> UserParserClosure<[a], c, u> {
+  func scan () -> UserParser<[a], c, u> {
     return (end >>> create([])
         <|> p >>- { x in
           scan >>- { xs in

@@ -2,14 +2,16 @@
     The primitive parser combinators.
 */
 
-public typealias Parser<a, c: Collection> = (State<c>) -> Consumed<a, c>
-public typealias ParserClosure<a, c: Collection> = () -> (State<c>) -> Consumed<a, c>
+public typealias Parser<a, c: Collection> = (State<c, ()>) -> Consumed<a, c, ()>
+public typealias ParserClosure<a, c: Collection> = () -> (State<c, ()>) -> Consumed<a, c, ()>
+public typealias UserParser<a, c: Collection, u> = (State<c, u>) -> Consumed<a, c, u>
+public typealias UserParserClosure<a, c: Collection, u> = () -> (State<c, u>) -> Consumed<a, c, u>
 
-public enum Consumed<a, c: Collection> {
-  case consumed(Lazy<Reply<a, c>>)
-  case empty(Reply<a, c>)
+public enum Consumed<a, c: Collection, u> {
+  case consumed(Lazy<Reply<a, c, u>>)
+  case empty(Reply<a, c, u>)
 
-  func map<b> (_ f: @escaping (a) -> b) -> Consumed<b, c> {
+  func map<b> (_ f: @escaping (a) -> b) -> Consumed<b, c, u> {
     switch self {
     case let .consumed(reply): return .consumed(Lazy { reply.value.map(f) })
     case let .empty(reply): return .empty(reply.map(f))
@@ -18,11 +20,11 @@ public enum Consumed<a, c: Collection> {
 }
 
 // TODO: Change ParseError in Reply to Lazy<ParseError>
-public enum Reply<a, c: Collection> {
-  case ok(a, State<c>, ParseError)
+public enum Reply<a, c: Collection, u> {
+  case ok(a, State<c, u>, ParseError)
   case error(ParseError)
 
-  func map<b> (_ f: (a) -> b) -> Reply<b, c> {
+  func map<b> (_ f: (a) -> b) -> Reply<b, c, u> {
     switch self {
     case let .ok(x, s, err): return .ok(f(x), s, err)
     case let .error(err): return .error(err)
@@ -30,18 +32,15 @@ public enum Reply<a, c: Collection> {
   }
 }
 
-public struct State<c: Collection> {
+public struct State<c: Collection, u> {
   let input: c
   let pos: SourcePos
+  let user: u
 
-  init (_ input: c, _ pos: SourcePos) {
+  init (_ input: c, _ pos: SourcePos, _ user: u) {
     self.input = input
     self.pos = pos
-  }
-
-  public init (_ input: c) {
-    self.input = input
-    self.pos = SourcePos()
+    self.user = user
   }
 }
 
@@ -66,7 +65,7 @@ public enum Either<l, r> {
   case right(r)
 }
 
-public func create<a, c: Collection> (_ x: a) -> ParserClosure<a, c> {
+public func create<a, c: Collection, u> (_ x: a) -> UserParserClosure<a, c, u> {
   return parserReturn(x)
 }
 
@@ -84,17 +83,17 @@ precedencegroup LabelPrecedence {
 }
 
 infix operator >>- : BindPrecedence
-public func >>- <a, b, c: Collection> (p: ParserClosure<a, c>, f: @escaping (a) -> ParserClosure<b, c>) -> ParserClosure<b, c> {
+public func >>- <a, b, c: Collection, u> (p: UserParserClosure<a, c, u>, f: @escaping (a) -> UserParserClosure<b, c, u>) -> UserParserClosure<b, c, u> {
   return parserBind(p, f)
 }
 
 infix operator >>> : BindPrecedence
-public func >>> <a, b, c: Collection> (p: ParserClosure<a, c>, q: ParserClosure<b, c>) -> ParserClosure<b, c> {
-  return p >>- { _ in { q() } }
+public func >>> <a, b, c: Collection, u> (p: UserParserClosure<a, c, u>, q: UserParserClosure<b, c, u>) -> UserParserClosure<b, c, u> {
+  return p >>- { _ in q }
 }
 
 infix operator <<< : BindPrecedence
-public func <<< <a, b, c: Collection> (p: ParserClosure<a, c>, q: ParserClosure<b, c>) -> ParserClosure<a, c> {
+public func <<< <a, b, c: Collection, u> (p: UserParserClosure<a, c, u>, q: UserParserClosure<b, c, u>) -> UserParserClosure<a, c, u> {
   return p >>- { x in q >>> create(x) }
 }
 
@@ -107,21 +106,21 @@ public func <<< <a, b, c: Collection> (p: ParserClosure<a, c>, q: ParserClosure<
     used. For an example of the use of `unexpected`, see the definition
     of `notFollowedBy`.
 */
-public func unexpected<a, c: Collection> (_ msg: String) -> ParserClosure<a, c> {
+public func unexpected<a, c: Collection, u> (_ msg: String) -> UserParserClosure<a, c, u> {
   return {{ state in
     .empty(.error(ParseError(state.pos, [.unExpect(msg)])))
   }}
 }
 
-public func fail<a, c: Collection> (_ msg: String) -> ParserClosure<a, c> {
+public func fail<a, c: Collection, u> (_ msg: String) -> UserParserClosure<a, c, u> {
   return parserFail(msg)
 }
 
-public func parserReturn<a, c: Collection> (_ x: a) -> ParserClosure<a, c> {
+public func parserReturn<a, c: Collection, u> (_ x: a) -> UserParserClosure<a, c, u> {
   return {{ state in .empty(.ok(x, state, unknownError(state))) }}
 }
 
-public func parserBind<a, b, c: Collection> (_ p: ParserClosure<a, c>, _ f: @escaping (a) -> ParserClosure<b, c>) -> ParserClosure<b, c> {
+public func parserBind<a, b, c: Collection, u> (_ p: UserParserClosure<a, c, u>, _ f: @escaping (a) -> UserParserClosure<b, c, u>) -> UserParserClosure<b, c, u> {
   return {{ state in
     switch p()(state) {
 
@@ -156,7 +155,7 @@ public func parserBind<a, b, c: Collection> (_ p: ParserClosure<a, c>, _ f: @esc
   }}
 }
 
-public func parserFail<a, c: Collection> (_ msg: String) -> ParserClosure<a, c> {
+public func parserFail<a, c: Collection, u> (_ msg: String) -> UserParserClosure<a, c, u> {
   return {{ state in
     .empty(.error(ParseError(state.pos, .message(msg))))
   }}
@@ -165,13 +164,13 @@ public func parserFail<a, c: Collection> (_ msg: String) -> ParserClosure<a, c> 
 /**
     `parserZero` always fails without consuming any input.
 */
-public func parserZero<a, c: Collection> () -> Parser<a, c> {
+public func parserZero<a, c: Collection, u> () -> UserParser<a, c, u> {
   return { state in
     .empty(.error(unknownError(state)))
   }
 }
 
-public func parserPlus<a, c: Collection> (_ p: ParserClosure<a, c>, _ q: ParserClosure<a, c>) -> ParserClosure<a, c> {
+public func parserPlus<a, c: Collection, u> (_ p: UserParserClosure<a, c, u>, _ q: UserParserClosure<a, c, u>) -> UserParserClosure<a, c, u> {
   return {{ state in
     switch p()(state) {
     case let .empty(.error(msg1)):
@@ -201,15 +200,15 @@ public func parserPlus<a, c: Collection> (_ p: ParserClosure<a, c>, _ q: ParserC
     rather than returning all possible characters.
 */
 infix operator <?> : LabelPrecedence
-public func <?> <a, c: Collection> (p: ParserClosure<a, c>, msg: String) -> ParserClosure<a, c> {
+public func <?> <a, c: Collection, u> (p: UserParserClosure<a, c, u>, msg: String) -> UserParserClosure<a, c, u> {
   return label(p, msg)
 }
 
-public func label<a, c: Collection> (_ p: ParserClosure<a, c>, _ msg: String) -> ParserClosure<a, c> {
+public func label<a, c: Collection, u> (_ p: UserParserClosure<a, c, u>, _ msg: String) -> UserParserClosure<a, c, u> {
   return labels(p, [msg])
 }
 
-public func labels<a, c: Collection> (_ p: ParserClosure<a, c>, _ msgs: [String]) -> ParserClosure<a, c> {
+public func labels<a, c: Collection, u> (_ p: UserParserClosure<a, c, u>, _ msgs: [String]) -> UserParserClosure<a, c, u> {
   return {{ state in
     switch p()(state) {
     case let .empty(.error(err)): return .empty(.error(setExpectErrors(err, msgs)))
@@ -243,7 +242,7 @@ func setExpectErrors (_ err: ParseError, _ msgs: [String]) -> ParseError {
     error messages.
 */
 infix operator <|> : ChoicePrecedence
-public func <|> <a, c:Collection> (p: ParserClosure<a, c>, q: ParserClosure<a, c>) -> ParserClosure<a, c> {
+public func <|> <a, c:Collection, u> (p: UserParserClosure<a, c, u>, q: UserParserClosure<a, c, u>) -> UserParserClosure<a, c, u> {
   return parserPlus(p, q)
 }
 
@@ -287,7 +286,7 @@ public func <|> <a, c:Collection> (p: ParserClosure<a, c>, q: ParserClosure<a, c
           return many1(letter())
         }
 */
-public func attempt<a, c: Collection> (_ p: ParserClosure<a, c>) -> ParserClosure<a, c> {
+public func attempt<a, c: Collection, u> (_ p: UserParserClosure<a, c, u>) -> UserParserClosure<a, c, u> {
   return {{ state in
     switch p()(state) {
     case let .consumed(reply):
@@ -306,7 +305,7 @@ public func attempt<a, c: Collection> (_ p: ParserClosure<a, c>) -> ParserClosur
     If `p` fails and consumes some input, so does `lookAhead`. Combine with
     `attempt` if this is undesirable.
 */
-public func lookAhead<a, c: Collection> (_ p: ParserClosure<a, c>) -> ParserClosure<a, c> {
+public func lookAhead<a, c: Collection, u> (_ p: UserParserClosure<a, c, u>) -> UserParserClosure<a, c, u> {
   return {{ state in
     switch p()(state) {
     case let .consumed(reply):
@@ -337,7 +336,7 @@ public func lookAhead<a, c: Collection> (_ p: ParserClosure<a, c>) -> ParserClos
           return token(showTok, posFromTok, testTok)
         }
 */
-public func token<a, c: Collection> (_ showToken: @escaping (c.Iterator.Element) -> String, _ tokenPosition: @escaping (c.Iterator.Element) -> SourcePos, _ test: @escaping (c.Iterator.Element) -> a?) -> ParserClosure<a, c>
+public func token<a, c: Collection, u> (_ showToken: @escaping (c.Iterator.Element) -> String, _ tokenPosition: @escaping (c.Iterator.Element) -> SourcePos, _ test: @escaping (c.Iterator.Element) -> a?) -> UserParserClosure<a, c, u>
   where c.SubSequence == c
 {
   let nextPosition: (SourcePos, c.Iterator.Element, c) -> SourcePos = { _, current, rest in
@@ -350,7 +349,7 @@ public func token<a, c: Collection> (_ showToken: @escaping (c.Iterator.Element)
   return tokenPrim(showToken, nextPosition, test)
 }
 
-public func tokens<c: Collection> (_ showTokens: @escaping ([c.Iterator.Element]) -> String, _ nextPosition: @escaping (SourcePos, [c.Iterator.Element]) -> SourcePos, _ tts: [c.Iterator.Element]) -> ParserClosure<[c.Iterator.Element], c>
+public func tokens<c: Collection, u> (_ showTokens: @escaping ([c.Iterator.Element]) -> String, _ nextPosition: @escaping (SourcePos, [c.Iterator.Element]) -> SourcePos, _ tts: [c.Iterator.Element]) -> UserParserClosure<[c.Iterator.Element], c, u>
   where c.Iterator.Element: Equatable, c.SubSequence == c
 {
   if let tok = tts.first {
@@ -358,7 +357,7 @@ public func tokens<c: Collection> (_ showTokens: @escaping ([c.Iterator.Element]
     return {{ state in
       let errEof = ParseError(state.pos, [.sysUnExpect(""), .expect(showTokens(tts))])
       let errExpect = { x in ParseError(state.pos, [.sysUnExpect(showTokens([x])), .expect(showTokens(tts))]) }
-      func walk (_ restToks: ArraySlice<c.Iterator.Element>, _ restInput: c) -> Consumed<[c.Iterator.Element], c> {
+      func walk (_ restToks: ArraySlice<c.Iterator.Element>, _ restInput: c) -> Consumed<[c.Iterator.Element], c, u> {
         if let t = restToks.first {
           let ts = restToks.dropFirst()
           if let x = restInput.first {
@@ -370,7 +369,7 @@ public func tokens<c: Collection> (_ showTokens: @escaping ([c.Iterator.Element]
           }
         } else {
           let newPos = nextPosition(state.pos, tts)
-          let newState = State(restInput, newPos)
+          let newState = State(restInput, newPos, state.user)
           return .consumed(Lazy{ .ok(tts, newState, unknownError(newState)) })
         }
       }
@@ -408,14 +407,14 @@ public func tokens<c: Collection> (_ showTokens: @escaping ([c.Iterator.Element]
           return tokenPrim(showChar, nextPos, testChar)
         }
 */
-public func tokenPrim<a, c: Collection> (_ showToken: @escaping (c.Iterator.Element) -> String, _ nextPosition: @escaping (SourcePos, c.Iterator.Element, c) -> SourcePos, _ test: @escaping (c.Iterator.Element) -> a?) -> ParserClosure<a, c>
+public func tokenPrim<a, c: Collection, u> (_ showToken: @escaping (c.Iterator.Element) -> String, _ nextPosition: @escaping (SourcePos, c.Iterator.Element, c) -> SourcePos, _ test: @escaping (c.Iterator.Element) -> a?) -> UserParserClosure<a, c, u>
   where c.SubSequence == c
 {
   return {{ state in
     if let head = state.input.first, let x = test(head) {
       let tail = state.input.dropFirst()
       let newPos = nextPosition(state.pos, head, tail)
-      let newState = State(tail, newPos)
+      let newState = State(tail, newPos, state.user)
       return .consumed(Lazy{ .ok(x, newState, unknownError(newState)) })
     } else if let head = state.input.first {
       return .empty(sysUnExpectError(showToken(head), state.pos))
@@ -437,7 +436,7 @@ public func tokenPrim<a, c: Collection> (_ showToken: @escaping (c.Iterator.Elem
           } )()
         }
 */
-public func many<a, c: Collection> (_ p: ParserClosure<a, c>) -> ParserClosure<[a], c> {
+public func many<a, c: Collection, u> (_ p: UserParserClosure<a, c, u>) -> UserParserClosure<[a], c, u> {
   return manyAccum(append, p)
 }
 
@@ -455,13 +454,13 @@ func append<a> (_ next: a, _ list: [a]) -> [a] {
           return skipMany(space)()
         }
 */
-public func skipMany<a, c: Collection> (_ p: ParserClosure<a, c>) -> ParserClosure<(), c> {
+public func skipMany<a, c: Collection, u> (_ p: UserParserClosure<a, c, u>) -> UserParserClosure<(), c, u> {
   return manyAccum({ _, _ in [] }, p) >>> create(())
 }
 
-public func manyAccum<a, c: Collection> (_ acc: @escaping (a, [a]) -> [a], _ p: ParserClosure<a, c>) -> ParserClosure<[a], c> {
+public func manyAccum<a, c: Collection, u> (_ acc: @escaping (a, [a]) -> [a], _ p: UserParserClosure<a, c, u>) -> UserParserClosure<[a], c, u> {
   let msg = "Parsec many: combinator 'many' is applied to a parser that accepts an empty string."
-  func walk (_ xs: [a], _ x: a, _ state: State<c>, _ err: ParseError) -> Consumed<[a], c> {
+  func walk (_ xs: [a], _ x: a, _ state: State<c, u>, _ err: ParseError) -> Consumed<[a], c, u> {
     switch p()(state) {
     case let .consumed(reply):
       switch reply.value {
@@ -491,8 +490,8 @@ public func manyAccum<a, c: Collection> (_ acc: @escaping (a, [a]) -> [a], _ p: 
   }}
 }
 
-public func runP<a, c: Collection> (_ p: ParserClosure<a, c>, _ name: String, _ input: c) -> Either<ParseError, a> {
-  switch p()(State(input, SourcePos(name))) {
+public func runP<a, c: Collection, u> (_ p: UserParserClosure<a, c, u>, _ user: u, _ name: String, _ input: c) -> Either<ParseError, a> {
+  switch p()(State(input, SourcePos(name), user)) {
   case let .consumed(reply):
     switch reply.value {
     case let .ok(x, _, _): return .right(x)
@@ -519,8 +518,8 @@ public func runP<a, c: Collection> (_ p: ParserClosure<a, c>, _ name: String, _ 
           return runParser(p, fileUrl, input)
         }
 */
-public func runParser<a, c: Collection> (_ p: ParserClosure<a, c>, _ name: String, _ input: c) -> Either<ParseError, a> {
-  return runP(p, name, input)
+public func runParser<a, c: Collection, u> (_ p: UserParserClosure<a, c, u>, _ user: u, _ name: String, _ input: c) -> Either<ParseError, a> {
+  return runP(p, user, name, input)
 }
 
 /**
@@ -540,21 +539,29 @@ public func runParser<a, c: Collection> (_ p: ParserClosure<a, c>, _ name: Strin
           return commaSep(integer)()
         }
 */
-public func parse<a, c: Collection> (_ p: ParserClosure<a, c>, _ name: String, _ input: c) -> Either<ParseError, a> {
-  return runP(p, name, input)
+public func parse<a, c: Collection, u> (_ p: UserParserClosure<a, c, u>, _ user: u, _ name: String, _ input: c) -> Either<ParseError, a> {
+  return runP(p, user, name, input)
 }
 
-public func parseTest<a, c: Collection> (_ p: ParserClosure<a, c>, _ input: c) {
-  switch parse(p, "", input) {
+public func parse<a, c: Collection> (_ p: ParserClosure<a, c>, _ name: String, _ input: c) -> Either<ParseError, a> {
+  return parse(p, (), name, input)
+}
+
+public func parseTest<a, c: Collection, u> (_ p: UserParserClosure<a, c, u>, _ user: u, _ input: c) {
+  switch parse(p, user, "", input) {
   case let .left(err): print(err)
   case let .right(x): print(x)
   }
 }
 
+public func parseTest<a, c: Collection> (_ p: ParserClosure<a, c>, _ input: c) {
+  return parseTest(p, (), input)
+}
+
 /**
     Returns the current source position. See also 'SourcePos'.
 */
-public func getPosition<c: Collection> () -> ParserClosure<SourcePos, c> {
+public func getPosition<c: Collection, u> () -> UserParserClosure<SourcePos, c, u> {
   return getParserState >>- { state in
     create(state.pos)
   }
@@ -563,7 +570,7 @@ public func getPosition<c: Collection> () -> ParserClosure<SourcePos, c> {
 /**
     Returns the current input.
 */
-public func getInput<c: Collection> () -> ParserClosure<c, c> {
+public func getInput<c: Collection, u> () -> UserParserClosure<c, c, u> {
   return getParserState >>- { state in
     create(state.input)
   }
@@ -572,8 +579,8 @@ public func getInput<c: Collection> () -> ParserClosure<c, c> {
 /**
     `setPosition(pos)` sets the current source position to `pos`.
 */
-public func setPosition<c: Collection> (_ pos: SourcePos) -> ParserClosure<(), c> {
-  return updateParserState { state in State(state.input, pos) } >>> create(())
+public func setPosition<c: Collection, u> (_ pos: SourcePos) -> UserParserClosure<(), c, u> {
+  return updateParserState { state in State(state.input, pos, state.user) } >>> create(())
 }
 
 /**
@@ -581,28 +588,28 @@ public func setPosition<c: Collection> (_ pos: SourcePos) -> ParserClosure<(), c
     `setInput` functions can for example be used to deal with #include
     files.
 */
-public func setInput<c: Collection> (_ input: c) -> ParserClosure<(), c> {
-  return updateParserState { state in State(input, state.pos) } >>> create(())
+public func setInput<c: Collection, u> (_ input: c) -> UserParserClosure<(), c, u> {
+  return updateParserState { state in State(input, state.pos, state.user) } >>> create(())
 }
 
 /**
     Returns the full parser state as a 'State' record.
 */
-public func getParserState<c: Collection> () -> Parser<State<c>, c> {
+public func getParserState<c: Collection, u> () -> UserParser<State<c, u>, c, u> {
   return (updateParserState { state in state })()
 }
 
 /**
     `setParserState(state)` set the full parser state to `state`.
 */
-public func setParserState<c: Collection> (_ state: State<c>) -> ParserClosure<State<c>, c> {
+public func setParserState<c: Collection, u> (_ state: State<c, u>) -> UserParserClosure<State<c, u>, c, u> {
   return updateParserState { _ in state }
 }
 
 /**
     `updateParserState(f)` applies function `f` to the parser state.
 */
-public func updateParserState<c: Collection> (_ f: @escaping (State<c>) -> State<c>) -> ParserClosure<State<c>, c> {
+public func updateParserState<c: Collection, u> (_ f: @escaping (State<c, u>) -> State<c, u>) -> UserParserClosure<State<c, u>, c, u> {
   return {{ state in
     let newState = f(state)
     return .empty(.ok(newState, newState, unknownError(newState)))
