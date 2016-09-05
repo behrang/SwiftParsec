@@ -310,10 +310,14 @@ public func lookAhead<a, c: Collection, u> (_ p: UserParserClosure<a, c, u>) -> 
     switch p()(state) {
     case let .consumed(reply):
       switch reply.value {
-      case let .ok(x, st, err): return .empty(.ok(x, st, err))
+      case let .ok(x, _, _): return .empty(.ok(x, state, unknownError(state)))
       default: return .consumed(reply)
       }
-    case let other: return other
+    case let .empty(reply):
+      switch reply {
+      case let .ok(x, _, _): return .empty(.ok(x, state, unknownError(state)))
+      default: return .empty(reply)
+      }
     }
   }}
 }
