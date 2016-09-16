@@ -83,17 +83,17 @@ precedencegroup LabelPrecedence {
 }
 
 infix operator >>- : BindPrecedence
-public func >>- <a, b, c: Collection, u> (p: UserParserClosure<a, c, u>, f: @escaping (a) -> UserParserClosure<b, c, u>) -> UserParserClosure<b, c, u> {
+public func >>- <a, b, c: Collection, u> (p: @escaping UserParserClosure<a, c, u>, f: @escaping (a) -> UserParserClosure<b, c, u>) -> UserParserClosure<b, c, u> {
   return parserBind(p, f)
 }
 
 infix operator >>> : BindPrecedence
-public func >>> <a, b, c: Collection, u> (p: UserParserClosure<a, c, u>, q: UserParserClosure<b, c, u>) -> UserParserClosure<b, c, u> {
+public func >>> <a, b, c: Collection, u> (p: @escaping UserParserClosure<a, c, u>, q: @escaping UserParserClosure<b, c, u>) -> UserParserClosure<b, c, u> {
   return p >>- { _ in q }
 }
 
 infix operator <<< : BindPrecedence
-public func <<< <a, b, c: Collection, u> (p: UserParserClosure<a, c, u>, q: UserParserClosure<b, c, u>) -> UserParserClosure<a, c, u> {
+public func <<< <a, b, c: Collection, u> (p: @escaping UserParserClosure<a, c, u>, q: @escaping UserParserClosure<b, c, u>) -> UserParserClosure<a, c, u> {
   return p >>- { x in q >>> create(x) }
 }
 
@@ -120,7 +120,7 @@ public func parserReturn<a, c: Collection, u> (_ x: a) -> UserParserClosure<a, c
   return {{ state in .empty(.ok(x, state, unknownError(state))) }}
 }
 
-public func parserBind<a, b, c: Collection, u> (_ p: UserParserClosure<a, c, u>, _ f: @escaping (a) -> UserParserClosure<b, c, u>) -> UserParserClosure<b, c, u> {
+public func parserBind<a, b, c: Collection, u> (_ p: @escaping UserParserClosure<a, c, u>, _ f: @escaping (a) -> UserParserClosure<b, c, u>) -> UserParserClosure<b, c, u> {
   return {{ state in
     switch p()(state) {
 
@@ -170,7 +170,7 @@ public func parserZero<a, c: Collection, u> () -> UserParser<a, c, u> {
   }
 }
 
-public func parserPlus<a, c: Collection, u> (_ p: UserParserClosure<a, c, u>, _ q: UserParserClosure<a, c, u>) -> UserParserClosure<a, c, u> {
+public func parserPlus<a, c: Collection, u> (_ p: @escaping UserParserClosure<a, c, u>, _ q: @escaping UserParserClosure<a, c, u>) -> UserParserClosure<a, c, u> {
   return {{ state in
     switch p()(state) {
     case let .empty(.error(msg1)):
@@ -200,15 +200,15 @@ public func parserPlus<a, c: Collection, u> (_ p: UserParserClosure<a, c, u>, _ 
     rather than returning all possible characters.
 */
 infix operator <?> : LabelPrecedence
-public func <?> <a, c: Collection, u> (p: UserParserClosure<a, c, u>, msg: String) -> UserParserClosure<a, c, u> {
+public func <?> <a, c: Collection, u> (p: @escaping UserParserClosure<a, c, u>, msg: String) -> UserParserClosure<a, c, u> {
   return label(p, msg)
 }
 
-public func label<a, c: Collection, u> (_ p: UserParserClosure<a, c, u>, _ msg: String) -> UserParserClosure<a, c, u> {
+public func label<a, c: Collection, u> (_ p: @escaping UserParserClosure<a, c, u>, _ msg: String) -> UserParserClosure<a, c, u> {
   return labels(p, [msg])
 }
 
-public func labels<a, c: Collection, u> (_ p: UserParserClosure<a, c, u>, _ msgs: [String]) -> UserParserClosure<a, c, u> {
+public func labels<a, c: Collection, u> (_ p: @escaping UserParserClosure<a, c, u>, _ msgs: [String]) -> UserParserClosure<a, c, u> {
   return {{ state in
     switch p()(state) {
     case let .empty(.error(err)): return .empty(.error(setExpectErrors(err, msgs)))
@@ -242,7 +242,7 @@ func setExpectErrors (_ err: ParseError, _ msgs: [String]) -> ParseError {
     error messages.
 */
 infix operator <|> : ChoicePrecedence
-public func <|> <a, c:Collection, u> (p: UserParserClosure<a, c, u>, q: UserParserClosure<a, c, u>) -> UserParserClosure<a, c, u> {
+public func <|> <a, c:Collection, u> (p: @escaping UserParserClosure<a, c, u>, q: @escaping UserParserClosure<a, c, u>) -> UserParserClosure<a, c, u> {
   return parserPlus(p, q)
 }
 
@@ -286,7 +286,7 @@ public func <|> <a, c:Collection, u> (p: UserParserClosure<a, c, u>, q: UserPars
           return many1(letter())
         }
 */
-public func attempt<a, c: Collection, u> (_ p: UserParserClosure<a, c, u>) -> UserParserClosure<a, c, u> {
+public func attempt<a, c: Collection, u> (_ p: @escaping UserParserClosure<a, c, u>) -> UserParserClosure<a, c, u> {
   return {{ state in
     switch p()(state) {
     case let .consumed(reply):
@@ -305,7 +305,7 @@ public func attempt<a, c: Collection, u> (_ p: UserParserClosure<a, c, u>) -> Us
     If `p` fails and consumes some input, so does `lookAhead`. Combine with
     `attempt` if this is undesirable.
 */
-public func lookAhead<a, c: Collection, u> (_ p: UserParserClosure<a, c, u>) -> UserParserClosure<a, c, u> {
+public func lookAhead<a, c: Collection, u> (_ p: @escaping UserParserClosure<a, c, u>) -> UserParserClosure<a, c, u> {
   return {{ state in
     switch p()(state) {
     case let .consumed(reply):
@@ -440,7 +440,7 @@ public func tokenPrim<a, c: Collection, u> (_ showToken: @escaping (c.Iterator.E
           } )()
         }
 */
-public func many<a, c: Collection, u> (_ p: UserParserClosure<a, c, u>) -> UserParserClosure<[a], c, u> {
+public func many<a, c: Collection, u> (_ p: @escaping UserParserClosure<a, c, u>) -> UserParserClosure<[a], c, u> {
   return manyAccum(append, p)
 }
 
@@ -458,11 +458,11 @@ func append<a> (_ next: a, _ list: [a]) -> [a] {
           return skipMany(space)()
         }
 */
-public func skipMany<a, c: Collection, u> (_ p: UserParserClosure<a, c, u>) -> UserParserClosure<(), c, u> {
+public func skipMany<a, c: Collection, u> (_ p: @escaping UserParserClosure<a, c, u>) -> UserParserClosure<(), c, u> {
   return manyAccum({ _, _ in [] }, p) >>> create(())
 }
 
-public func manyAccum<a, c: Collection, u> (_ acc: @escaping (a, [a]) -> [a], _ p: UserParserClosure<a, c, u>) -> UserParserClosure<[a], c, u> {
+public func manyAccum<a, c: Collection, u> (_ acc: @escaping (a, [a]) -> [a], _ p: @escaping UserParserClosure<a, c, u>) -> UserParserClosure<[a], c, u> {
   let msg = "Parsec many: combinator 'many' is applied to a parser that accepts an empty string."
   func walk (_ xs: [a], _ x: a, _ state: State<c, u>, _ err: ParseError) -> Consumed<[a], c, u> {
     switch p()(state) {
