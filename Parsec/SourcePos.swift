@@ -4,9 +4,9 @@
     upper left is (1,1)
 */
 public struct SourcePos: CustomStringConvertible, Comparable {
-  var name: String
-  var line: Int
-  var column: Int
+  public var name: String
+  public var line: Int
+  public var column: Int
 
   init (_ name: String, _ line: Int, _ column: Int) {
     self.name = name
