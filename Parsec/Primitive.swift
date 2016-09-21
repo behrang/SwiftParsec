@@ -565,10 +565,8 @@ public func parseTest<a, c: Collection> (_ p: ParserClosure<a, c>, _ input: c) {
 /**
     Returns the current source position. See also 'SourcePos'.
 */
-public func getPosition<c: Collection, u> () -> UserParserClosure<SourcePos, c, u> {
-  return getParserState >>- { state in
-    create(state.pos)
-  }
+public func getPosition<c: Collection, u> () -> UserParser<SourcePos, c, u> {
+  return (getParserState >>- { state in create(state.pos) })()
 }
 
 /**
