@@ -617,3 +617,32 @@ public func updateParserState<c: Collection, u> (_ f: @escaping (State<c, u>) ->
     return .empty(.ok(newState, newState, unknownError(newState)))
   }}
 }
+
+/**
+    Returns the current user state.
+*/
+public func getState<c: Collection, u> () -> UserParser<u, c, u> {
+  return (getParserState >>- { state in create(state.user)})()
+}
+
+/**
+    `putState(state)` set the user state to `state`.
+*/
+public func putState<c:Collection, u> (_ user: u) -> UserParserClosure<(), c, u> {
+  return updateParserState { state in State(state.input, state.pos, user) } >>> create(())
+}
+
+/**
+    `modifyState(f)` applies function `f` to the user state. Suppose
+    that we want to count identifiers in a source, we could use the user
+    state as:
+
+        let expr = identifier >>- { x in
+          modifyState { $0 + 1 }
+          return create(x)
+        }
+*/
+public func modifyState<c: Collection, u> (_ f: @escaping (u) -> u) -> UserParserClosure<(), c, u> {
+  return updateParserState { state in State(state.input, state.pos, f(state.user)) } >>> create(())
+}
+
