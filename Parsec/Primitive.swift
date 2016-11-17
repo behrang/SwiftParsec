@@ -572,10 +572,8 @@ public func getPosition<c: Collection, u> () -> UserParser<SourcePos, c, u> {
 /**
     Returns the current input.
 */
-public func getInput<c: Collection, u> () -> UserParserClosure<c, c, u> {
-  return getParserState >>- { state in
-    create(state.input)
-  }
+public func getInput<c: Collection, u> () -> UserParser<c, c, u> {
+  return (getParserState >>- { state in create(state.input) })()
 }
 
 /**
