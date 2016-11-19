@@ -54,7 +54,7 @@ func unknownError<c: Collection, u> (_ state: State<c, u>) -> ParseError {
 }
 
 func sysUnExpectError<a, c: Collection, u> (_ msg: String, _ pos: SourcePos) -> Reply<a, c, u> {
-  return .error(ParseError(pos, .sysUnExpect(msg)))
+  return .error(Lazy{ ParseError(pos, .sysUnExpect(msg)) })
 }
 
 /**

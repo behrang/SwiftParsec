@@ -13,16 +13,15 @@ public enum Consumed<a, c: Collection, u> {
 
   func map<b> (_ f: @escaping (a) -> b) -> Consumed<b, c, u> {
     switch self {
-    case let .consumed(reply): return .consumed(Lazy { reply.value.map(f) })
+    case let .consumed(reply): return .consumed(Lazy{ reply.value.map(f) })
     case let .empty(reply): return .empty(reply.map(f))
     }
   }
 }
 
-// TODO: Change ParseError in Reply to Lazy<ParseError>
 public enum Reply<a, c: Collection, u> {
-  case ok(a, State<c, u>, ParseError)
-  case error(ParseError)
+  case ok(a, State<c, u>, Lazy<ParseError>)
+  case error(Lazy<ParseError>)
 
   func map<b> (_ f: (a) -> b) -> Reply<b, c, u> {
     switch self {
@@ -108,7 +107,7 @@ public func <<< <a, b, c: Collection, u> (p: @escaping UserParserClosure<a, c, u
 */
 public func unexpected<a, c: Collection, u> (_ msg: String) -> UserParserClosure<a, c, u> {
   return {{ state in
-    .empty(.error(ParseError(state.pos, [.unExpect(msg)])))
+    .empty(.error(Lazy{ ParseError(state.pos, [.unExpect(msg)]) }))
   }}
 }
 
@@ -117,7 +116,7 @@ public func fail<a, c: Collection, u> (_ msg: String) -> UserParserClosure<a, c,
 }
 
 public func parserReturn<a, c: Collection, u> (_ x: a) -> UserParserClosure<a, c, u> {
-  return {{ state in .empty(.ok(x, state, unknownError(state))) }}
+  return {{ state in .empty(.ok(x, state, Lazy{ unknownError(state) })) }}
 }
 
 public func parserBind<a, b, c: Collection, u> (_ p: @escaping UserParserClosure<a, c, u>, _ f: @escaping (a) -> UserParserClosure<b, c, u>) -> UserParserClosure<b, c, u> {
@@ -129,12 +128,12 @@ public func parserBind<a, b, c: Collection, u> (_ p: @escaping UserParserClosure
       case let .error(msg1): return .empty(.error(msg1))
       case let .ok(x, inp, msg1):
         switch f(x)()(inp) {
-        case let .empty(.error(msg2)): return .empty(.error(mergeError(msg1, msg2)))
-        case let .empty(.ok(y, _, msg2)): return .empty(.ok(y, inp, mergeError(msg1, msg2)))
+        case let .empty(.error(msg2)): return .empty(.error(Lazy{ mergeError(msg1.value, msg2.value) }))
+        case let .empty(.ok(y, _, msg2)): return .empty(.ok(y, inp, Lazy{ mergeError(msg1.value, msg2.value) }))
         case let .consumed(reply2):
           switch reply2.value {
-          case let .error(msg2): return .consumed(Lazy{ .error(mergeError(msg1, msg2)) })
-          case let .ok(y, rest, msg2): return .consumed(Lazy{ .ok(y, rest, mergeError(msg1, msg2)) })
+          case let .error(msg2): return .consumed(Lazy{ .error(Lazy{ mergeError(msg1.value, msg2.value) }) })
+          case let .ok(y, rest, msg2): return .consumed(Lazy{ .ok(y, rest, Lazy{ mergeError(msg1.value, msg2.value) }) })
           }
         }
       }
@@ -145,8 +144,8 @@ public func parserBind<a, b, c: Collection, u> (_ p: @escaping UserParserClosure
         case let .error(msg1): return .error(msg1)
         case let .ok(x, rest, msg1):
           switch f(x)()(rest) {
-          case let .empty(.error(msg2)): return .error(mergeError(msg2,msg1))
-          case let .empty(.ok(y, inp, msg2)): return .ok(y, inp, mergeError(msg1, msg2))
+          case let .empty(.error(msg2)): return .error(Lazy{ mergeError(msg2.value,msg1.value) })
+          case let .empty(.ok(y, inp, msg2)): return .ok(y, inp, Lazy{ mergeError(msg1.value, msg2.value) })
           case let .consumed(reply2): return reply2.value
           }
         }
@@ -157,7 +156,7 @@ public func parserBind<a, b, c: Collection, u> (_ p: @escaping UserParserClosure
 
 public func parserFail<a, c: Collection, u> (_ msg: String) -> UserParserClosure<a, c, u> {
   return {{ state in
-    .empty(.error(ParseError(state.pos, .message(msg))))
+    .empty(.error(Lazy{ ParseError(state.pos, .message(msg)) }))
   }}
 }
 
@@ -166,7 +165,7 @@ public func parserFail<a, c: Collection, u> (_ msg: String) -> UserParserClosure
 */
 public func parserZero<a, c: Collection, u> () -> UserParser<a, c, u> {
   return { state in
-    .empty(.error(unknownError(state)))
+    .empty(.error(Lazy{ unknownError(state) }))
   }
 }
 
@@ -175,14 +174,14 @@ public func parserPlus<a, c: Collection, u> (_ p: @escaping UserParserClosure<a,
     switch p()(state) {
     case let .empty(.error(msg1)):
       switch q()(state) {
-      case let .empty(.error(msg2)): return .empty(.error(mergeError(msg1, msg2)))
-      case let .empty(.ok(x, inp, msg2)): return .empty(.ok(x, inp, mergeError(msg1, msg2)))
+      case let .empty(.error(msg2)): return .empty(.error(Lazy{ mergeError(msg1.value, msg2.value) }))
+      case let .empty(.ok(x, inp, msg2)): return .empty(.ok(x, inp, Lazy{ mergeError(msg1.value, msg2.value) }))
       case let consumed: return consumed
       }
     case let .empty(.ok(x, inp, msg1)):
       switch q()(state) {
-      case let .empty(.error(msg2)): return .empty(.ok(x, inp, mergeError(msg1, msg2)))
-      case let .empty(.ok(_, _, msg2)): return .empty(.ok(x, inp, mergeError(msg1, msg2)))
+      case let .empty(.error(msg2)): return .empty(.ok(x, inp, Lazy{ mergeError(msg1.value, msg2.value) }))
+      case let .empty(.ok(_, _, msg2)): return .empty(.ok(x, inp, Lazy{ mergeError(msg1.value, msg2.value) }))
       case let consumed: return consumed
       }
     case let consumed: return consumed
@@ -211,8 +210,8 @@ public func label<a, c: Collection, u> (_ p: @escaping UserParserClosure<a, c, u
 public func labels<a, c: Collection, u> (_ p: @escaping UserParserClosure<a, c, u>, _ msgs: [String]) -> UserParserClosure<a, c, u> {
   return {{ state in
     switch p()(state) {
-    case let .empty(.error(err)): return .empty(.error(setExpectErrors(err, msgs)))
-    case let .empty(.ok(x, st, err)): return .empty(.ok(x, st, setExpectErrors(err, msgs)))
+    case let .empty(.error(err)): return .empty(.error(Lazy{ setExpectErrors(err.value, msgs) }))
+    case let .empty(.ok(x, st, err)): return .empty(.ok(x, st, Lazy{ setExpectErrors(err.value, msgs) }))
     case let other: return other
     }
   }}
@@ -310,12 +309,12 @@ public func lookAhead<a, c: Collection, u> (_ p: @escaping UserParserClosure<a, 
     switch p()(state) {
     case let .consumed(reply):
       switch reply.value {
-      case let .ok(x, _, _): return .empty(.ok(x, state, unknownError(state)))
+      case let .ok(x, _, _): return .empty(.ok(x, state, Lazy{ unknownError(state) }))
       default: return .consumed(reply)
       }
     case let .empty(reply):
       switch reply {
-      case let .ok(x, _, _): return .empty(.ok(x, state, unknownError(state)))
+      case let .ok(x, _, _): return .empty(.ok(x, state, Lazy{ unknownError(state) }))
       default: return .empty(reply)
       }
     }
@@ -367,27 +366,27 @@ public func tokens<c: Collection, u> (_ showTokens: @escaping ([c.Iterator.Eleme
           if let x = restInput.first {
             let xs = restInput.dropFirst()
             if t == x { return walk(ts, xs) }
-            else { return .consumed(Lazy{ .error(errExpect(x)) })}
+            else { return .consumed(Lazy{ .error(Lazy{ errExpect(x) }) })}
           } else {
-            return .consumed(Lazy{ .error(errEof) })
+            return .consumed(Lazy{ .error(Lazy{ errEof }) })
           }
         } else {
           let newPos = nextPosition(state.pos, tts)
           let newState = State(restInput, newPos, state.user)
-          return .consumed(Lazy{ .ok(tts, newState, unknownError(newState)) })
+          return .consumed(Lazy{ .ok(tts, newState, Lazy{ unknownError(newState) }) })
         }
       }
 
       if let x = state.input.first {
         let xs = state.input.dropFirst()
         if tok == x { return walk(toks, xs) }
-        else { return .empty(.error(errExpect(x)))}
+        else { return .empty(.error(Lazy{ errExpect(x) }))}
       } else {
-        return .empty(.error(errEof))
+        return .empty(.error(Lazy{ errEof }))
       }
     }}
   } else {
-    return {{ state in .empty(.ok([], state, unknownError(state))) }}
+    return {{ state in .empty(.ok([], state, Lazy{ unknownError(state) })) }}
   }
 }
 
@@ -419,7 +418,7 @@ public func tokenPrim<a, c: Collection, u> (_ showToken: @escaping (c.Iterator.E
       let tail = state.input.dropFirst()
       let newPos = nextPosition(state.pos, head, tail)
       let newState = State(tail, newPos, state.user)
-      return .consumed(Lazy{ .ok(x, newState, unknownError(newState)) })
+      return .consumed(Lazy{ .ok(x, newState, Lazy{ unknownError(newState) }) })
     } else if let head = state.input.first {
       return .empty(sysUnExpectError(showToken(head), state.pos))
     } else {
@@ -464,12 +463,12 @@ public func skipMany<a, c: Collection, u> (_ p: @escaping UserParserClosure<a, c
 
 public func manyAccum<a, c: Collection, u> (_ acc: @escaping (a, [a]) -> [a], _ p: @escaping UserParserClosure<a, c, u>) -> UserParserClosure<[a], c, u> {
   let msg = "Parsec many: combinator 'many' is applied to a parser that accepts an empty string."
-  func walk (_ xs: [a], _ x: a, _ state: State<c, u>, _ err: ParseError) -> Consumed<[a], c, u> {
+  func walk (_ xs: [a], _ x: a, _ state: State<c, u>) -> Consumed<[a], c, u> {
     switch p()(state) {
     case let .consumed(reply):
       switch reply.value {
       case let .error(err): return .consumed(Lazy{ .error(err) })
-      case let .ok(y, st, e): return walk(acc(x, xs), y, st, e)
+      case let .ok(y, st, _): return walk(acc(x, xs), y, st)
       }
     case let .empty(reply):
       switch reply {
@@ -483,7 +482,7 @@ public func manyAccum<a, c: Collection, u> (_ acc: @escaping (a, [a]) -> [a], _ 
     case let .consumed(reply):
       switch reply.value {
       case let .error(err): return .consumed(Lazy{ .error(err) })
-      case let .ok(x, st, err): return walk([], x, st, err)
+      case let .ok(x, st, _): return walk([], x, st)
       }
     case let .empty(reply):
       switch reply {
@@ -499,12 +498,12 @@ public func runP<a, c: Collection, u> (_ p: UserParserClosure<a, c, u>, _ user: 
   case let .consumed(reply):
     switch reply.value {
     case let .ok(x, _, _): return .right(x)
-    case let .error(err): return .left(err)
+    case let .error(err): return .left(err.value)
     }
   case let .empty(reply):
     switch reply {
     case let .ok(x, _, _): return .right(x)
-    case let .error(err): return .left(err)
+    case let .error(err): return .left(err.value)
     }
   }
 }
@@ -612,7 +611,7 @@ public func setParserState<c: Collection, u> (_ state: State<c, u>) -> UserParse
 public func updateParserState<c: Collection, u> (_ f: @escaping (State<c, u>) -> State<c, u>) -> UserParserClosure<State<c, u>, c, u> {
   return {{ state in
     let newState = f(state)
-    return .empty(.ok(newState, newState, unknownError(newState)))
+    return .empty(.ok(newState, newState, Lazy{ unknownError(newState) }))
   }}
 }
 
