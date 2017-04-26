@@ -2,6 +2,10 @@
 
 Parsec is an industrial strength, monadic parser combinator library. The original paper is available here: [Parsec: Direct Style Monadic Parser Combinators For The Real World](http://research.microsoft.com/pubs/65201/parsec-paper-letter.pdf). Find more info about Haskell Parsec here: [https://wiki.haskell.org/Parsec](https://wiki.haskell.org/Parsec). To learn more, you may want to read [chapter 16 of Real World Haskell](http://book.realworldhaskell.org/read/using-parsec.html).
 
+# Looking for a maintainer
+
+I don't have time and interest to maintain this project. If you want to help with maintenance, please send me a message.
+
 # What is Parsec?
 
 Parsec is a "parser combinator" library. It has many utility functions and helps you combine simpler parsers to create more advanced parsers.
